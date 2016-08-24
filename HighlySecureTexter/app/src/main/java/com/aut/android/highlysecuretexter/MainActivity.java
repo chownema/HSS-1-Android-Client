@@ -46,6 +46,8 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private String responseString = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,11 +56,11 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        assert fab != null;
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                final View v = view;
                 new AsyncTask<Void, Void, Void>(){
                     @Override
                     protected Void doInBackground(Void... voids) {
@@ -70,16 +72,25 @@ public class MainActivity extends AppCompatActivity {
                         return null;
                     }
 
+                    @Override
+                    protected void onPostExecute(Void aVoid) {
+                        super.onPostExecute(aVoid);
+                        Snackbar.make(v, "Response : " + responseString, Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+
+                    }
+
+
                     }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null);
 
-                Log.e("Post-Data", "pre posted data");
+
             }
         });
     }
 
 
 
-    public String postData() throws IOException {
+    public void postData() throws IOException {
 
         //URL url = new URL("http://156.62.62.37:8080/PKAServer/webresources/pka/request/0212556332");
         URL url = new URL("http://posttestserver.com/post.php");
@@ -92,10 +103,10 @@ public class MainActivity extends AppCompatActivity {
             //client.setRequestProperty("message", "Value");
             client.setDoOutput(true);
             outputPost = new BufferedOutputStream(client.getOutputStream());
-            String message = "hello";
             //outputPost.write(message.getBytes());
             outputPost.flush();
             responseBody = client.getResponseMessage();
+            responseString = responseBody;
             Log.e("Post-Data", responseBody);
 
         } catch (IOException e) {
@@ -103,9 +114,8 @@ public class MainActivity extends AppCompatActivity {
             Log.e("PostException", "IO EXCEPTION");
             e.printStackTrace();
         }
-        client.disconnect();
 
-        return responseBody;
+        client.disconnect();
     }
 
     @Override
