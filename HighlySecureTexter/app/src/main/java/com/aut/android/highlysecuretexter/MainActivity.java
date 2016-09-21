@@ -1,12 +1,16 @@
 package com.aut.android.highlysecuretexter;
 
+import android.Manifest;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
+import android.service.carrier.CarrierMessagingService;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
@@ -60,13 +64,18 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.SEND_SMS}, 1);
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         assert fab != null;
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 final View v = view;
-                post();
+                //post();
+                sendSMSMessage();
                 new AsyncTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... voids) {
@@ -94,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
     {
         AsyncHttpClient client = new AsyncHttpClient();
         String URL = "http://156.62.62.37:8080/PKAServer/webresources/pka/request/012556332";
-        String URL2 = "http://172.28.41.238:8080/PKAServer/webresources/pka/request/012556332";
+        String URL2 = "http://172.28.41.238:8080/PKAServer/webresources/pka/request/012556332"; //MAC
         client.post(URL2, new AsyncHttpResponseHandler() {
 
             @Override
@@ -120,6 +129,27 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    protected void sendSMSMessage() {
+        Log.i("Send SMS", "");
+        String phoneNoM = "0211245735";
+        String phoneNo = "021256332";
+        String phoneNoS = "0212547306";
+        String message = "Sonic Is Late";
+
+        try {
+            SmsManager smsManager = SmsManager.getDefault();
+            smsManager.sendTextMessage(phoneNoS, null, message, null, null);
+            Toast.makeText(getApplicationContext(), "SMS sent.", Toast.LENGTH_LONG).show();
+        }
+
+        catch (Exception e) {
+            Toast.makeText(getApplicationContext(), "SMS faild, please try again.", Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
+    }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
