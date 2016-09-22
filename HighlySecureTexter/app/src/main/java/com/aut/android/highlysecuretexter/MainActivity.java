@@ -15,6 +15,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import org.apache.http.HttpResponse;
@@ -53,9 +55,10 @@ import com.loopj.android.http.*;
 
 import cz.msebera.android.httpclient.Header;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private String responseString = "";
+    Button sendMsgButton, decryptButton, clear1Button, clear2Button;
+    EditText inputMessage, cipherMessage, inputNumber;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,41 +66,31 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        sendMsgButton = (Button)findViewById(R.id.sendButton);
+        decryptButton = (Button)findViewById(R.id.decryptButton);
+        clear1Button = (Button)findViewById(R.id.clear1);
+        clear2Button = (Button)findViewById(R.id.clear2);
 
+        inputMessage = (EditText) findViewById(R.id.messageInput) ;
+        cipherMessage = (EditText) findViewById(R.id.cipherInput);
+        inputNumber = (EditText) findViewById(R.id.numberInput);
+        sendMsgButton.setOnClickListener(this); decryptButton.setOnClickListener(this);
+        clear1Button.setOnClickListener(this); clear2Button.setOnClickListener(this);
 
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.SEND_SMS}, 1);
-
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        assert fab != null;
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                final View v = view;
-                //post();
-                sendSMSMessage();
-                new AsyncTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... voids) {
 
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Void aVoid) {
-                        super.onPostExecute(aVoid);
-                        Snackbar.make(v, "Response : " + responseString, Snackbar.LENGTH_LONG)
-                                .setAction("Action", null).show();
-
-                    }
-
-
-                }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null);
-
-
-            }
-        });
+//        sendMsgButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                sendSMSMessage();
+//            }
+//        });
     }
+
+
+
 
     public void post()
     {
@@ -136,17 +129,23 @@ public class MainActivity extends AppCompatActivity {
         String phoneNo = "021256332";
         String phoneNoS = "0212547306";
         String message = "Sonic Is Late";
+        String phoneNum = inputNumber.getText().toString();
+        String msg = inputMessage.getText().toString();
 
         try {
             SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendTextMessage(phoneNoS, null, message, null, null);
+            smsManager.sendTextMessage(phoneNum, null, msg, null, null);
             Toast.makeText(getApplicationContext(), "SMS sent.", Toast.LENGTH_LONG).show();
         }
 
         catch (Exception e) {
-            Toast.makeText(getApplicationContext(), "SMS faild, please try again.", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "SMS failed, please try again.", Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
+    }
+
+    protected void decryptMessage(){
+
     }
 
 
@@ -171,5 +170,23 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch(v.getId()){
+            case (R.id.sendButton):{
+                sendSMSMessage();
+            }break;
+            case (R.id.decryptButton):{
+                decryptMessage();
+            }break;
+            case(R.id.clear1):{
+                inputMessage.setText("");
+            }break;
+            case(R.id.clear2):{
+                cipherMessage.setText("");
+            }break;
+        }
     }
 }
