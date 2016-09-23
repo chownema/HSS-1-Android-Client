@@ -66,29 +66,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        sendMsgButton = (Button)findViewById(R.id.sendButton);
-        decryptButton = (Button)findViewById(R.id.decryptButton);
-        clear1Button = (Button)findViewById(R.id.clear1);
-        clear2Button = (Button)findViewById(R.id.clear2);
+        sendMsgButton = (Button) findViewById(R.id.sendButton);
+        decryptButton = (Button) findViewById(R.id.decryptButton);
+        clear1Button = (Button) findViewById(R.id.clear1);
+        clear2Button = (Button) findViewById(R.id.clear2);
 
-        inputMessage = (EditText) findViewById(R.id.messageInput) ;
+        inputMessage = (EditText) findViewById(R.id.messageInput);
         cipherMessage = (EditText) findViewById(R.id.cipherInput);
         inputNumber = (EditText) findViewById(R.id.numberInput);
-        sendMsgButton.setOnClickListener(this); decryptButton.setOnClickListener(this);
-        clear1Button.setOnClickListener(this); clear2Button.setOnClickListener(this);
+        sendMsgButton.setOnClickListener(this);
+        decryptButton.setOnClickListener(this);
+        clear1Button.setOnClickListener(this);
+        clear2Button.setOnClickListener(this);
 
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.SEND_SMS}, 1);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-
-//        sendMsgButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                sendSMSMessage();
-//            }
-//        });
     }
-
 
 
 
