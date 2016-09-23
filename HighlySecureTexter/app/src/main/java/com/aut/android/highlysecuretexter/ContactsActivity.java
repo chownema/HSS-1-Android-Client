@@ -69,6 +69,7 @@ public class ContactsActivity extends AppCompatActivity implements View.OnClickL
         if (view == refreshButton)
         {
             Log.d("Refresh Contacts", "Refreshing...");
+            Toast.makeText(getApplicationContext(), "Refreshing Contacts", Toast.LENGTH_SHORT).show();
         }
     }
 }

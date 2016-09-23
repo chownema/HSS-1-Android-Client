@@ -63,7 +63,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/textView4"
         android:layout_marginTop="46dp"
-        android:layout_below="@+id/button3"
+        android:layout_below="@+id/connect_button"
         android:layout_toStartOf="@+id/password_edit_text" />
 
     <EditText
@@ -75,13 +75,13 @@
         android:hint="0211245734"
         android:layout_alignBaseline="@+id/textView4"
         android:layout_alignBottom="@+id/textView4"
-        android:layout_alignEnd="@+id/button3" />
+        android:layout_alignEnd="@+id/connect_button" />
 
     <Button
         android:text="Connect"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/button3"
+        android:id="@+id/connect_button"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_alignBaseline="@+id/textView8"
         android:layout_alignBottom="@+id/textView8"
