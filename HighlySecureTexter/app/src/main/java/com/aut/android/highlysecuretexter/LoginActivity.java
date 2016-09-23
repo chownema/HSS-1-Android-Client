@@ -33,7 +33,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // If Requesting email
         if (view == requestEmailButton)
         {
-            httpHelper.post();
+            httpHelper.post("request/"+R.string.debug_mob_number);
 
         }
     }

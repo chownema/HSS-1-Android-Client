@@ -14,21 +14,20 @@ import cz.msebera.android.httpclient.Header;
 
 public class HttpHelper {
 
-
-    Activity currentActivity;
+    // Get Context of Activity Class is used
     private static Context context;
-
 
     public HttpHelper(Context c)
     {
         this.context = c;
     }
 
-    public String post()
+    public String post(String urlResource)
     {
         AsyncHttpClient client = new AsyncHttpClient();
         String URL = "http://156.62.62.37:8080/PKAServer/webresources/pka/request/012556332";
-        String URL2 = "http://172.28.41.238:8080/PKAServer/webresources/pka/request/123456"; //MAC
+
+        String URL2 = "http://172.28.41.238:8080/PKAServer/webresources/pka/"+urlResource; //MAC
         client.post(URL2, new AsyncHttpResponseHandler() {
 
             @Override

@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">HighlySecureTexter</string>
     <string name="action_settings">Settings</string>
+
+    <!--Change According to the phone you are using-->
+    <string name="debug_mob_number">0211245734</string>
 </resources>

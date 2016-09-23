@@ -10,15 +10,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.aut.android.highlysecuretexter.LoginActivity">
 
-    <TextView
-        android:text="Email :"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/Email_label"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="28dp"
-        android:layout_alignParentStart="true" />
-
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -30,12 +21,70 @@
         android:layout_alignBottom="@+id/Email_label"
         android:layout_toEndOf="@+id/Email_label" />
 
+    <TextView
+        android:text="Email :"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/Email_label"
+        android:layout_marginTop="21dp"
+        android:layout_below="@+id/phone_edit_text"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:text="Password :"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:id="@+id/textView8"
+        android:layout_alignParentStart="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:ems="10"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@+id/textView8"
+        android:id="@+id/password_edit_text"
+        android:hint="Apple123" />
+
     <Button
         android:text="REQUEST"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/email_request_button"
         style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_alignBottom="@+id/email_edit_text"
-        android:layout_alignParentEnd="true" />
+        android:layout_below="@+id/Email_label"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:text="Number : "
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView4"
+        android:layout_marginTop="46dp"
+        android:layout_below="@+id/button3"
+        android:layout_toStartOf="@+id/password_edit_text" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="phone"
+        android:ems="10"
+        android:id="@+id/phone_edit_text"
+        android:hint="0211245734"
+        android:layout_alignBaseline="@+id/textView4"
+        android:layout_alignBottom="@+id/textView4"
+        android:layout_alignEnd="@+id/button3" />
+
+    <Button
+        android:text="Connect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/button3"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_alignBaseline="@+id/textView8"
+        android:layout_alignBottom="@+id/textView8"
+        android:layout_toEndOf="@+id/email_edit_text" />
+
 </RelativeLayout>
