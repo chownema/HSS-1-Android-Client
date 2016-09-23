@@ -10,4 +10,22 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.aut.android.highlysecuretexter.ContactsActivity">
 
+    <Button
+        android:text="Refresh Contacts"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:id="@+id/refresh_contacts_button"
+        android:layout_alignParentEnd="true"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:elevation="24dp" />
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/contacts_list_view"
+        android:layout_alignParentStart="true"
+        android:layout_above="@+id/refresh_contacts_button" />
+
 </RelativeLayout>
