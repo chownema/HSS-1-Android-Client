@@ -1,6 +1,7 @@
 package com.aut.android.highlysecuretexter;
 
 import android.Manifest;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
@@ -15,113 +16,65 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Toast;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpVersion;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.util.EntityUtils;
-
-import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import com.loopj.android.http.*;
+
+import java.util.ArrayList;
 
 import cz.msebera.android.httpclient.Header;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    Button sendMsgButton, decryptButton, clear1Button, clear2Button;
+    FloatingActionButton sendMsgButton;
     EditText inputMessage, cipherMessage, inputNumber;
+    ListView messageListView;
+    Intent i;
+
+    // Message List Var
+    ArrayList<String> messageList;
+    private ArrayAdapter<String> adapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        sendMsgButton = (Button) findViewById(R.id.sendButton);
-        decryptButton = (Button) findViewById(R.id.decryptButton);
-        clear1Button = (Button) findViewById(R.id.clear1);
-        clear2Button = (Button) findViewById(R.id.clear2);
+        i = getIntent();
+        // Add number to the title
+        setTitle(i.getStringExtra("number"));
 
-        inputMessage = (EditText) findViewById(R.id.messageInput);
-        cipherMessage = (EditText) findViewById(R.id.cipherInput);
-        inputNumber = (EditText) findViewById(R.id.numberInput);
+
+
+
+        // Init Message List View
+        messageList = new ArrayList<>();
+        messageListView = (ListView) findViewById(R.id.message_list_view);
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, messageList);
+        messageListView.setAdapter(adapter);
+
+        // Init Buttons
+        sendMsgButton = (FloatingActionButton) findViewById(R.id.floatingActionButton_send);
         sendMsgButton.setOnClickListener(this);
-        decryptButton.setOnClickListener(this);
-        clear1Button.setOnClickListener(this);
-        clear2Button.setOnClickListener(this);
+
+        inputMessage = (EditText) findViewById(R.id.message_edit_text_view);
 
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.SEND_SMS}, 1);
-    }
 
-
-
-    public void post()
-    {
-        AsyncHttpClient client = new AsyncHttpClient();
-        String URL = "http://156.62.62.37:8080/PKAServer/webresources/pka/request/012556332";
-        String URL2 = "http://172.28.41.238:8080/PKAServer/webresources/pka/request/012556332"; //MAC
-        client.post(URL2, new AsyncHttpResponseHandler() {
-
-            @Override
-            public void onStart() {
-                // called before request is started
-                Toast.makeText(MainActivity.this, "ATTEMPTING", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                Toast.makeText(MainActivity.this, "SUCCESS", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                Toast.makeText(MainActivity.this, "FAIL", Toast.LENGTH_SHORT).show();
-
-            }
-
-            @Override
-            public void onRetry(int retryNo) {
-                // called when request is retried
-            }
-        });
+        // Set Layout to Be pushed up when Soft Keyboard is used
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
     }
 
     protected void sendSMSMessage() {
         Log.i("Send SMS", "");
-        String phoneNoM = "0211245735";
-        String phoneNo = "021256332";
-        String phoneNoS = "0212547306";
-        String message = "Sonic Is Late";
-        String phoneNum = inputNumber.getText().toString();
+        String phoneNum = i.getStringExtra("number");
         String msg = inputMessage.getText().toString();
 
         try {
@@ -134,12 +87,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Toast.makeText(getApplicationContext(), "SMS failed, please try again.", Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
+
+        // Add it to the list
+        messageList.add("You :" + msg);
+        adapter.notifyDataSetChanged();
+        messageListView.smoothScrollToPosition(messageList.size(), messageList.size());
     }
-
-    protected void decryptMessage(){
-
-    }
-
 
 
     @Override
@@ -167,17 +120,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         switch(v.getId()){
-            case (R.id.sendButton):{
+            case (R.id.floatingActionButton_send):{
                 sendSMSMessage();
-            }break;
-            case (R.id.decryptButton):{
-                decryptMessage();
-            }break;
-            case(R.id.clear1):{
-                inputMessage.setText("");
-            }break;
-            case(R.id.clear2):{
-                cipherMessage.setText("");
             }break;
         }
     }

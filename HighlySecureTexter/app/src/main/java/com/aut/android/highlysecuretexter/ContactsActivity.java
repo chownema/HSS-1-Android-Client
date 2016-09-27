@@ -22,9 +22,9 @@ public class ContactsActivity extends AppCompatActivity implements View.OnClickL
     private ListView contactsListView;
     private ArrayAdapter<String> adapter;
     ArrayList<String> contactsList = new ArrayList<String>() {{
-        add("012123123");
-        add("012123123");
-        add("012123123");
+        add("0211245734"); //mine
+        add("0212547306"); //sonic
+        add("021256332"); //adam
     }};
 
     @Override
@@ -50,7 +50,7 @@ public class ContactsActivity extends AppCompatActivity implements View.OnClickL
 
                 Toast.makeText(getApplicationContext(), contactsList.get(position) + "CLICKED", Toast.LENGTH_SHORT).show();
                 Intent myIntent = new Intent(ContactsActivity.this, MainActivity.class);
-                myIntent.putExtra("key", value); //Optional parameters
+                myIntent.putExtra("number", contactsList.get(position)); //Optional parameters
                 ContactsActivity.this.startActivity(myIntent);
             }
         });

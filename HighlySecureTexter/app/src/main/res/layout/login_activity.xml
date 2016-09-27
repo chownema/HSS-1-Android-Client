@@ -72,10 +72,10 @@
         android:inputType="phone"
         android:ems="10"
         android:id="@+id/phone_edit_text"
-        android:hint="0211245734"
         android:layout_alignBaseline="@+id/textView4"
         android:layout_alignBottom="@+id/textView4"
-        android:layout_alignEnd="@+id/connect_button" />
+        android:layout_alignEnd="@+id/connect_button"
+        android:text="0211245734" />
 
     <Button
         android:text="Connect"

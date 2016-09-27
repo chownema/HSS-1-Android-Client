@@ -1,6 +1,7 @@
 package com.aut.android.highlysecuretexter;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -11,11 +12,13 @@ import android.widget.Toast;
 
 import com.aut.android.highlysecuretexter.Controller.HttpHelper;
 
+import static android.R.attr.absListViewStyle;
 import static android.R.attr.value;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
     private Button requestEmailButton, connectButton;
+    EditText yourNumberEditText, passwordEditText;
     private HttpHelper httpHelper;
 
     @Override
@@ -23,6 +26,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.login_activity);
+
+        yourNumberEditText = (EditText) findViewById(R.id.phone_edit_text);
+        passwordEditText = (EditText) findViewById(R.id.password_edit_text);
 
         // Set buttons
         requestEmailButton = (Button) findViewById(R.id.email_request_button);
@@ -37,13 +43,36 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     }
 
+
+    public void setPasswordText(String pass)
+    {
+        passwordEditText.setText(pass);
+    }
+
+
     @Override
     public void onClick(View view) {
         // If Requesting email
         if (view == requestEmailButton)
         {
-            httpHelper.post("request/"+R.string.debug_mob_number);
+            Toast.makeText(this, yourNumberEditText.getText().toString(), Toast.LENGTH_SHORT).show();
+            httpHelper.post("request/"+yourNumberEditText.getText().toString());
 
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    while(httpHelper.getPass() == null) {
+                        // Do nothing
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    setPasswordText(httpHelper.getPass());
+                    super.onPostExecute(aVoid);
+                }
+            }.execute();
         }
         if (view == connectButton)
         {
