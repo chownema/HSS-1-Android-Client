@@ -44,6 +44,8 @@ public class ClientHelper{
     private PrivateKey privateKey;
     private PublicKey publicKey;
     private PublicKey pkaPubKey;
+    private byte[] cipherByteArray;
+    private byte[] bytesEncoded;
     private final byte[] salt = {-84, 40, -10, -53, -80, 90, -57, 125};
 
     private HttpHelper h;
@@ -96,26 +98,50 @@ public class ClientHelper{
 
         try {
             // Prep cipher
-            Cipher pbeCipher = Cipher.getInstance("PBEWithMD5AndDES/CBC/PKCS5Padding");
+            final Cipher pbeCipher = Cipher.getInstance("PBEWithMD5AndDES/CBC/PKCS5Padding");
             pbeCipher.init(ENCRYPT_MODE, ephemeralKey, new PBEParameterSpec(salt, 1000));
 
             // Encrypt nonce with pub key of pka (added security)
-            Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            rsaCipher.init(ENCRYPT_MODE, pkaPubKey);
-            byte[] nonceBytes = rsaCipher.doFinal(phoneNum.getBytes());
+            final Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            // Wait receive PKA public Key
+            new AsyncTask<Void, Void, Void>()
+            {
+                // Wait for PKA PUB KEY
+                @Override
+                protected Void doInBackground(Void... voids)
+                {
+                    while(getPKAKey() == null)
+                    {
+                        // wait
+                    }
+                    try {
+                        initCipherBytes(getPKAKey(), rsaCipher, pbeCipher);
+                    } catch (InvalidKeyException e) {
+                        e.printStackTrace();
+                    } catch (BadPaddingException e) {
+                        e.printStackTrace();
+                    } catch (IllegalBlockSizeException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
 
-            // Package data
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            baos.write(phoneNum.getBytes());
-            baos.write("---".getBytes());
-            baos.write(Base64.encode(nonceBytes, Base64.DEFAULT)); // encrypted with private RSA
-            baos.write("---".getBytes());
-            baos.write(Base64.encode(publicKey.getEncoded(), Base64.DEFAULT));
-
-            // Encrypt and return
-            byte[] cipherBytes = pbeCipher.doFinal(baos.toByteArray());
-            return cipherBytes;
-
+                // After Received Key continue
+                @Override
+                protected void onPostExecute(Void aVoid)
+                {
+                    // Complete initialisation join message
+                    byte[] cipherBytes = cipherByteArray;
+                    Log.e("Size of cipher", ""+cipherBytes.length);
+                    String bytesEncoded = Base64.encodeToString(cipherBytes, Base64.DEFAULT);
+                    // Replace for http safe characters before sending it off
+                    bytesEncoded = bytesEncoded.replace("+", "%2B");
+                    bytesEncoded = bytesEncoded.replace("/", "%2F");
+                    super.onPostExecute(aVoid);
+                }
+            }.execute();
         } catch (NoSuchAlgorithmException ex) {
             Log.e("Error", ex.toString());
             ex.printStackTrace();
@@ -125,22 +151,40 @@ public class ClientHelper{
         } catch (InvalidKeyException ex) {
             Log.e("Error", ex.toString());
             ex.printStackTrace();
-        } catch (IllegalBlockSizeException ex) {
-            Log.e("Error", ex.toString());
-            ex.printStackTrace();
-        } catch (BadPaddingException ex) {
-            Log.e("Error", ex.toString());
-            ex.printStackTrace();
         } catch (InvalidAlgorithmParameterException ex) {
             Log.e("Error", ex.toString());
             ex.printStackTrace();
-        } catch (IOException ex) {
-            Log.e("Error", ex.toString());
-            ex.printStackTrace();
         }
-
         return null;
     }
+
+
+
+
+
+
+    public byte[] initCipherBytes(PublicKey pkaKey, Cipher rsaCipher, Cipher pbeCipher) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException {
+
+        rsaCipher.init(ENCRYPT_MODE, pkaPubKey);
+        byte[] nonceBytes = rsaCipher.doFinal(phoneNum.getBytes());
+
+        // Package data
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write(phoneNum.getBytes());
+        baos.write("---".getBytes());
+        baos.write(Base64.encode(nonceBytes, Base64.DEFAULT)); // encrypted with private RSA
+        baos.write("---".getBytes());
+        baos.write(Base64.encode(publicKey.getEncoded(), Base64.DEFAULT));
+
+        // Encrypt and return
+        byte[] cipherBytes = pbeCipher.doFinal(baos.toByteArray());
+        // set Cipher Byte Array
+        cipherByteArray = cipherBytes;
+        // Return Cipher Byte Array
+        return cipherBytes;
+    }
+
+
 
 
 
@@ -176,23 +220,40 @@ public class ClientHelper{
             }
         }.execute();
 
-
     }
 
+    public PublicKey getPKAKey()
+    {
+        return pkaPubKey;
+    }
+
+    // Sends join message to the PKA
     public Void sendJoin() {
         h = new HttpHelper(context);
         h.post("pkakey");
-        while(h.getResponse() == "" || h.getResponse() == null)
-        {
-            // wait
-        }
-        generateEphemeral();
-        generateKeys();
-        byte[] cipherBytes = encryptDetails();
-        Log.e("Size of cipher", ""+cipherBytes.length);
-        String bytesEncoded = Base64.encodeToString(cipherBytes, Base64.DEFAULT);
-        bytesEncoded = bytesEncoded.replace("+", "%2B");
-        bytesEncoded = bytesEncoded.replace("/", "%2F");
+
+        new AsyncTask<Void, Void, Void> () {
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                while(h.getResponse() == "" || h.getResponse() == null)
+                {
+                    // wait
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                generateEphemeral();
+                generateKeys();
+                // set data package to send
+                encryptDetails();
+            }
+        }.execute();
+
+
         return null;
     }
 }

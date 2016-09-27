@@ -105,7 +105,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 client = new ClientHelper(yourNumberEditText.getText().toString(),
                 passwordEditText.getText().toString(), this);
                 // Set up Join Request
-                //client.sendJoin();
+                client.sendJoin();
 
 
             } catch (InvalidKeySpecException e) {

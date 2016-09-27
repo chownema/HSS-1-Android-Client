@@ -33,7 +33,8 @@ public class HttpHelper {
         AsyncHttpClient client = new AsyncHttpClient();
         String URL = "http://156.62.62.37:8080/PKAServer/webresources/pka/request/012556332";
         String ip = "192.168.0.6"; // home
-        String URL2 = "http://"+ip+":8080/PKAServerLatest2/webresources/pka/" + urlResource; //MAC
+        String ip2 = "172.28.41.238";
+        String URL2 = "http://"+ip2+":8080/PKAServerLatest2/webresources/pka/" + urlResource; //MAC
 
         client.post(URL2, new AsyncHttpResponseHandler() {
 
