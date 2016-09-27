@@ -15,6 +15,9 @@ import android.widget.Toast;
 import com.aut.android.highlysecuretexter.Controller.ClientHelper;
 import com.aut.android.highlysecuretexter.Controller.HttpHelper;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
 import static android.R.attr.absListViewStyle;
 import static android.R.attr.value;
 
@@ -25,6 +28,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private HttpHelper httpHelper;
 
     ClientHelper client;
+
+    String password;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,10 +55,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     }
 
-
-    public void setPasswordText(String pass)
+    public void setPasswordText()
     {
-        passwordEditText.setText(pass);
+        passwordEditText.setText(password);
+    }
+
+    public boolean canSetPasswordText(String pass)
+    {
+        if(pass!=null||pass!="") {
+            password = pass;
+            return false; // false to exit the loop
+        }
+        return true;
     }
 
 
@@ -72,30 +85,35 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... voids) {
-                    while(httpHelper.getPass() == null) {
-                        //wait for response from server
+                    while(canSetPasswordText(httpHelper.getResponse())) {
+                        //wait for response from server for password
                     }
                     return null;
                 }
 
                 @Override
                 protected void onPostExecute(Void aVoid) {
-                    String password = httpHelper.getPass();
-                    setPasswordText(password);
-                    // Encrpyt and Store data
-                    client = new ClientHelper(yourNumberEditText.getText().toString(), password);
-                    client.generateEphemeral();
-                    client.generateKeys();
-                    byte[] cipherBytes = client.encryptDetails();
-                    Log.e("Size of cipher", ""+cipherBytes.length);
-                    String bytesEncoded = Base64.encodeToString(cipherBytes, Base64.DEFAULT);
-                    bytesEncoded = bytesEncoded.replace("+", "%2B");
-                    bytesEncoded = bytesEncoded.replace("/", "%2F");
-
-
+                    // Set Password when received response
+                    String password = httpHelper.getResponse();
+                    setPasswordText();
                     super.onPostExecute(aVoid);
                 }
             }.execute();
+
+            // Encrypt and Store data
+            try {
+                client = new ClientHelper(yourNumberEditText.getText().toString(),
+                passwordEditText.getText().toString(), this);
+                // Set up Join Request
+                //client.sendJoin();
+
+
+            } catch (InvalidKeySpecException e) {
+                e.printStackTrace();
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+
 
         }
         if (view == connectButton)

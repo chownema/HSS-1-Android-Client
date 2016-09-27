@@ -1,5 +1,8 @@
 package com.aut.android.highlysecuretexter.Controller;
 
+import android.app.Application;
+import android.content.Context;
+import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
 
@@ -7,14 +10,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.security.spec.X509EncodedKeySpec;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -25,13 +28,15 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
+import cz.msebera.android.httpclient.client.methods.HttpPatch;
+
 import static javax.crypto.Cipher.ENCRYPT_MODE;
 
 /**
  * Created by MI on 27/09/16.
  */
 
-public class ClientHelper {
+public class ClientHelper{
 
     private String phoneNum;
     private String oneTimeKey;
@@ -41,9 +46,15 @@ public class ClientHelper {
     private PublicKey pkaPubKey;
     private final byte[] salt = {-84, 40, -10, -53, -80, 90, -57, 125};
 
-    public ClientHelper(String phoneNum, String oneTimeKey) {
+    private HttpHelper h;
+
+    private Context context;
+
+    public ClientHelper(String phoneNum, String oneTimeKey, Context c) throws InvalidKeySpecException, NoSuchAlgorithmException {
         this.phoneNum = phoneNum;
         this.oneTimeKey = oneTimeKey;
+        this.context = c;
+        setPKAKey();
     }
 
     public void generateEphemeral() {
@@ -128,6 +139,60 @@ public class ClientHelper {
             ex.printStackTrace();
         }
 
+        return null;
+    }
+
+
+
+    public void setPKAKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
+        h = new HttpHelper(context);
+        h.post("pkakey");
+
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                while(h.getResponse() == null) {
+                    //wait for response from server
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                // Set new PKA Key
+                Log.e("Key got back", h.getResponse());
+                byte[] publicBytes = Base64.decode(h.getResponse(), Base64.DEFAULT);
+                X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicBytes);
+                KeyFactory keyFactory = null;
+                try {
+                    keyFactory = KeyFactory.getInstance("RSA");
+                    pkaPubKey = keyFactory.generatePublic(keySpec);
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                } catch (InvalidKeySpecException e) {
+                    e.printStackTrace();
+                }
+                super.onPostExecute(aVoid);
+            }
+        }.execute();
+
+
+    }
+
+    public Void sendJoin() {
+        h = new HttpHelper(context);
+        h.post("pkakey");
+        while(h.getResponse() == "" || h.getResponse() == null)
+        {
+            // wait
+        }
+        generateEphemeral();
+        generateKeys();
+        byte[] cipherBytes = encryptDetails();
+        Log.e("Size of cipher", ""+cipherBytes.length);
+        String bytesEncoded = Base64.encodeToString(cipherBytes, Base64.DEFAULT);
+        bytesEncoded = bytesEncoded.replace("+", "%2B");
+        bytesEncoded = bytesEncoded.replace("/", "%2F");
         return null;
     }
 }

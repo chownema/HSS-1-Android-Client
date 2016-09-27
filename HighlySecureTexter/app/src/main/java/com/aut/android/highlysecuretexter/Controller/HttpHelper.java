@@ -21,7 +21,7 @@ public class HttpHelper {
 
     // Get Context of Activity Class is used
     private static Context context;
-    String password;
+    String response;
 
     public HttpHelper(Context c)
     {
@@ -32,8 +32,8 @@ public class HttpHelper {
     public void post(String urlResource) {
         AsyncHttpClient client = new AsyncHttpClient();
         String URL = "http://156.62.62.37:8080/PKAServer/webresources/pka/request/012556332";
-
-        String URL2 = "http://172.28.41.238:8080/PKAServerLatest2/webresources/pka/" + urlResource; //MAC
+        String ip = "192.168.0.6"; // home
+        String URL2 = "http://"+ip+":8080/PKAServerLatest2/webresources/pka/" + urlResource; //MAC
 
         client.post(URL2, new AsyncHttpResponseHandler() {
 
@@ -48,7 +48,7 @@ public class HttpHelper {
                 Toast.makeText(context, "SUCCESS", Toast.LENGTH_SHORT).show();
                 // Get the Key and Successful response from the server
                 Toast.makeText(context, "Response :: " + new String(responseBody), Toast.LENGTH_SHORT).show();
-                setPass(new String(responseBody));
+                setResponse(new String(responseBody));
             }
 
             @Override
@@ -61,8 +61,6 @@ public class HttpHelper {
             public void onRetry(int retryNo) {
                 // called when request is retried
             }
-
-
         });
 
 
@@ -70,14 +68,23 @@ public class HttpHelper {
 
 
 
-    public void setPass(String pass)
+    public void setResponse(String v)
     {
-        password = pass;
+        response = v;
     }
 
-    public String getPass()
+    public String getResponse()
     {
-        return password;
+        String pResponse = "";
+        // If response exists then copy return proxy
+        // value then reset response value
+        if(response != "" || response != null)
+        {
+            pResponse = response;
+            response = "";
+        }
+
+        return pResponse;
     }
 
 }
