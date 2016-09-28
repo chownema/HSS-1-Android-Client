@@ -1,16 +1,9 @@
 package com.aut.android.highlysecuretexter;
 
-import android.Manifest;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceActivity;
-import android.service.carrier.CarrierMessagingService;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
@@ -18,18 +11,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.loopj.android.http.*;
+import com.aut.android.highlysecuretexter.Controller.Utility;
 
 import java.util.ArrayList;
 
-import cz.msebera.android.httpclient.Header;
-
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MessagingActivity extends AppCompatActivity implements View.OnClickListener {
 
     FloatingActionButton sendMsgButton;
     EditText inputMessage, cipherMessage, inputNumber;
@@ -44,14 +34,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_messaging);
 
+        // Add Recipient Number to the title
         i = getIntent();
-        // Add number to the title
         setTitle(i.getStringExtra("number"));
-
-
-
 
         // Init Message List View
         messageList = new ArrayList<>();
@@ -64,18 +51,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         sendMsgButton.setOnClickListener(this);
 
         inputMessage = (EditText) findViewById(R.id.message_edit_text_view);
-
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.SEND_SMS}, 1);
-
         // Set Layout to Be pushed up when Soft Keyboard is used
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+
+
+        /** Init Debug Variables **/
+        Utility.initDebugValues();
     }
 
     protected void sendSMSMessage() {
         Log.i("Send SMS", "");
         String phoneNum = i.getStringExtra("number");
-        String msg = inputMessage.getText().toString();
+        String msg = Utility.encryptAndEncodeString(inputMessage.getText().toString());
 
         try {
             SmsManager smsManager = SmsManager.getDefault();

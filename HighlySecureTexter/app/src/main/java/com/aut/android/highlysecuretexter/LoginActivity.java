@@ -1,9 +1,14 @@
 package com.aut.android.highlysecuretexter;
 
+import android.Manifest;
+import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -31,6 +36,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Set Edit Text
         yourNumberEditText = (EditText) findViewById(R.id.phone_edit_text);
         passwordEditText = (EditText) findViewById(R.id.password_edit_text);
+
 
         // Set buttons
         connectButton = (Button) findViewById(R.id.connect_button);
@@ -61,6 +67,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             }
 
         }.execute();
+
+        // Get Permissions
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.SEND_SMS}, 1);
     }
 
     @Override
@@ -68,13 +80,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Connect to the server with the encrypted cipher array
         if (view == connectButton)
         {
-            Toast.makeText(getApplicationContext(), "Connecting...", Toast.LENGTH_SHORT).show();
+            TelephonyManager tMgr = (TelephonyManager) getApplication().getSystemService(Context.TELEPHONY_SERVICE);
+            String mPhoneNumber = tMgr.getLine1Number();
+            Toast.makeText(getApplicationContext(), "Connecting..." + password, Toast.LENGTH_SHORT).show();
 
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... voids) {
                     try
                     {
+
                         Utility.init("1", password);
                     } catch (Exception e) {e.printStackTrace();}
                     return null;
@@ -89,9 +104,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
 
             // Put If statement blocking for server response
-//            Intent myIntent = new Intent(LoginActivity.this, ContactsActivity.class);
-//            myIntent.putExtra("key", value); //Optional parameters
-//            LoginActivity.this.startActivity(myIntent);
+            Intent myIntent = new Intent(LoginActivity.this, ContactsActivity.class);
+            myIntent.putExtra("key", ""); //Optional parameters
+            LoginActivity.this.startActivity(myIntent);
         }
     }
 

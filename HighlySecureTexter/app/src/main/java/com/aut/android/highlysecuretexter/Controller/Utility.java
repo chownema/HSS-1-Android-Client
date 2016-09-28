@@ -2,6 +2,7 @@ package com.aut.android.highlysecuretexter.Controller;
 
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -10,6 +11,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -19,9 +22,13 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
@@ -45,13 +52,66 @@ public class Utility {
     public static PrivateKey privateKey = null;
     public static PublicKey publicKey = null;
 
+    // Aes Encryption
+    private static IvParameterSpec initVector;
+    private static byte[] ivBytes = { 1, -2, 3, -4, 5, -6, 7, -8, 9,
+            -10, 11, -12, 13, -14, 15, -16 }; // random array of 16 bytes
 
+    // Debug variables
+    public static PrivateKey privateKeyA = null;
+    public static PublicKey publicKeyA = null;
+    public static PrivateKey privateKeyB = null;
+    public static PublicKey publicKeyB = null;
 
+    /**
+     * Debugging Functions
+     */
 
-    // Debugging function
     public static String getPassword(String number)
     {
         return doPost("request/"+number);
+    }
+
+    public static void initDebugValues()
+    {
+        // Initialize debug values
+
+        // Encrypted Messaging test
+        // Init RSA messaging variables
+        initMessagingEncryption();
+        // Create 2 local key pairs for messaging
+        generateDebugKeys();
+    }
+
+    public static void generateDebugKeys() {
+        try {
+            // Generate key pair for A
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+            kpg.initialize(2048);
+            KeyPair keyPair = kpg.generateKeyPair();
+            publicKeyA = keyPair.getPublic();
+            privateKeyA = keyPair.getPrivate();
+
+            // Generate key pair for B
+            keyPair = kpg.generateKeyPair();
+            publicKeyB = keyPair.getPublic();
+            privateKeyB = keyPair.getPrivate();
+        } catch (NoSuchAlgorithmException ex) {
+            Log.e("Error", ex.toString());
+        }
+    }
+
+    /**
+     * Encryption Functions
+     */
+
+    public static void initMessagingEncryption()
+    {
+        // Initialize messaging values
+
+        // init iv for AES cipher
+        initVector = new IvParameterSpec(ivBytes);
+
     }
 
     public static void init(String pNumber, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
@@ -75,7 +135,7 @@ public class Utility {
 
         // Base64 encode encrypted package into a string
         String bytesEncoded = encodeToBase64(encryptedConnPackage);
-        
+
         // Send request to join to PKA
         doPost("join/"+pNumber+"/"+bytesEncoded);
     }
@@ -138,6 +198,28 @@ public class Utility {
         return null;
     }
 
+    public static String encryptAndEncodeString(String message)
+    {
+        try {
+            Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            rsaCipher.init(ENCRYPT_MODE, privateKeyA);
+            byte[] encrpytedMessageBytes = rsaCipher.doFinal(message.getBytes());
+            message = encodeToBase64(encrpytedMessageBytes);
+        } catch (NoSuchAlgorithmException e)
+            {
+                e.printStackTrace();
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            }
+        return message;
+    }
+
 
 
 
@@ -188,12 +270,16 @@ public class Utility {
             conn.disconnect();
 
         } catch (MalformedURLException e) {
+            Log.e("Error Posting", e.toString());
             e.printStackTrace();
         } catch (IOException e) {
+            Log.e("Error Posting", e.toString());
             e.printStackTrace();
         }
 
         return data;
     }
+
+
 
 }

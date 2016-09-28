@@ -1,7 +1,6 @@
 package com.aut.android.highlysecuretexter;
 
 import android.content.Intent;
-import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,8 +12,6 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-
-import static android.R.attr.value;
 
 public class ContactsActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -49,7 +46,7 @@ public class ContactsActivity extends AppCompatActivity implements View.OnClickL
                                     int position, long id) {
 
                 Toast.makeText(getApplicationContext(), contactsList.get(position) + "CLICKED", Toast.LENGTH_SHORT).show();
-                Intent myIntent = new Intent(ContactsActivity.this, MainActivity.class);
+                Intent myIntent = new Intent(ContactsActivity.this, MessagingActivity.class);
                 myIntent.putExtra("number", contactsList.get(position)); //Optional parameters
                 ContactsActivity.this.startActivity(myIntent);
             }
