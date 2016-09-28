@@ -10,6 +10,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.aut.android.highlysecuretexter.Controller.Utility;
+
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
 import static android.R.attr.value;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
@@ -39,41 +44,63 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         connectButton = (Button) findViewById(R.id.connect_button);
         connectButton.setOnClickListener(this);
+
+        // Get one time password debug
+        Toast.makeText(this, "DEBUG : Getting one time password..", Toast.LENGTH_SHORT).show();
+        new AsyncTask<Void, Void, Void>()
+        {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                try
+                {
+                    // Gets the first time password
+                    password = Utility.getPassword("1");
+
+                }
+                catch (Exception e) {e.printStackTrace();}
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                Toast.makeText(getApplicationContext(),
+                        password, Toast.LENGTH_SHORT).show();
+                setPasswordText();
+            }
+
+        }.execute();
     }
 
     @Override
     public void onClick(View view) {
-        if (view == requestConnectionButton)
-        {
-            // Capture Phonenumber
-            number = yourNumberEditText.getText().toString();
-
-            // Set password in password field
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... voids) {
-                    response = "";
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    // Set Password when received response
-                    Log.e("Password Returned", response);
-                    Toast.makeText(getApplicationContext(), response, Toast.LENGTH_LONG).show();
-                }
-            }.execute();
-        }
-
         // Connect to the server with the encrypted cipher array
         if (view == connectButton)
         {
             Toast.makeText(getApplicationContext(), "Connecting...", Toast.LENGTH_SHORT).show();
 
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    try
+                    {
+                        Utility.init("1", password);
+                    } catch (Exception e) {e.printStackTrace();}
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+                }
+            }.execute();
+
+
+
             // Put If statement blocking for server response
-            Intent myIntent = new Intent(LoginActivity.this, ContactsActivity.class);
-            myIntent.putExtra("key", value); //Optional parameters
-            LoginActivity.this.startActivity(myIntent);
+//            Intent myIntent = new Intent(LoginActivity.this, ContactsActivity.class);
+//            myIntent.putExtra("key", value); //Optional parameters
+//            LoginActivity.this.startActivity(myIntent);
         }
     }
 

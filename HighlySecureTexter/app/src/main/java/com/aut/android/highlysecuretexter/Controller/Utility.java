@@ -35,27 +35,41 @@ import static javax.crypto.Cipher.ENCRYPT_MODE;
 public class Utility {
 
     public final static byte[] salt = {-84, 40, -10, -53, -80, 90, -57, 125};
-    public final static String endpoint = "http://172.28.56.205:8080/PKAServer/webresources/pka";
+    public final static String endpoint = "http://172.28.41.238:8080/PKAServerLatest2/webresources/pka/";
 
-    // Keys
+    // One off Key
     public static SecretKey ephemeralKey = null;
 
+    // Keys
     public static PublicKey pkaPubKey = null;
     public static PrivateKey privateKey = null;
     public static PublicKey publicKey = null;
 
 
-    public static void init(String phoneNum) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    // Debugging function
+    public static String getPassword(String number)
+    {
+        return doPost("request/"+number);
+    }
+
+    public static void init(String pNumber, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
         // get pka key
         pkaPubKey = KeyFactory.getInstance("RSA").generatePublic
-                (new X509EncodedKeySpec(decodeFromBase64(doPost("request/"+phoneNum))));
-        // Check is not null
-        if (pkaPubKey != null) {
+                (new X509EncodedKeySpec(decodeFromBase64(doPost("pkakey"))));
+
+        // Check PKA Key is null
+        if (pkaPubKey == null) {
             throw new RuntimeException("Key Error");
         }
 
+        // Get password and generate one time key
+        generateEphemeral(password);
 
+        // Generate Clients key pair
+        generateKeys();
 
+        // Create Encrypted encrypted data
+        byte[] encryptedConnPackage = encryptConnectionData(pNumber);
     }
 
     public static void generateEphemeral(String password) {
@@ -86,7 +100,7 @@ public class Utility {
         }
     }
 
-    private byte[] encryptConnectionData(String phoneNum) {
+    private static byte[] encryptConnectionData(String phoneNum) {
 
         try {
             // Prep cipher
