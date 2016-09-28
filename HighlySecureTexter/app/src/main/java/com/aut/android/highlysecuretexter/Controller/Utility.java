@@ -58,8 +58,6 @@ public class Utility {
             -10, 11, -12, 13, -14, 15, -16 }; // random array of 16 bytes
 
     // Debug variables
-    public static PrivateKey privateKeyA = null;
-    public static PublicKey publicKeyA = null;
     public static PrivateKey privateKeyB = null;
     public static PublicKey publicKeyB = null;
 
@@ -81,19 +79,15 @@ public class Utility {
         initMessagingEncryption();
         // Create 2 local key pairs for messaging
         generateDebugKeys();
+        generateKeys();
     }
 
     public static void generateDebugKeys() {
         try {
-            // Generate key pair for A
+            // Generate key pair for B
             KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
             kpg.initialize(2048);
             KeyPair keyPair = kpg.generateKeyPair();
-            publicKeyA = keyPair.getPublic();
-            privateKeyA = keyPair.getPrivate();
-
-            // Generate key pair for B
-            keyPair = kpg.generateKeyPair();
             publicKeyB = keyPair.getPublic();
             privateKeyB = keyPair.getPrivate();
         } catch (NoSuchAlgorithmException ex) {
@@ -202,9 +196,15 @@ public class Utility {
     {
         try {
             Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            rsaCipher.init(ENCRYPT_MODE, privateKeyA);
+            rsaCipher.init(ENCRYPT_MODE, privateKey);
             byte[] encrpytedMessageBytes = rsaCipher.doFinal(message.getBytes());
             message = encodeToBase64(encrpytedMessageBytes);
+
+            // Split message into parts
+            if (message.length() > 160)
+            {
+                int remainder = message.length() % 160;
+            }
         } catch (NoSuchAlgorithmException e)
             {
                 e.printStackTrace();
@@ -219,11 +219,6 @@ public class Utility {
             }
         return message;
     }
-
-
-
-
-
 
     /**
      * Sending Methods

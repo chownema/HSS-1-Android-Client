@@ -62,12 +62,13 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
     protected void sendSMSMessage() {
         Log.i("Send SMS", "");
         String phoneNum = i.getStringExtra("number");
+        // Encrypt String message
+//        s = s.substring(0, Math.min(s.length(), 10)); // need to split String message before sending
         String msg = Utility.encryptAndEncodeString(inputMessage.getText().toString());
-
         try {
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(phoneNum, null, msg, null, null);
-            Toast.makeText(getApplicationContext(), "SMS sent.", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "SMS sent " + msg, Toast.LENGTH_LONG).show();
         }
 
         catch (Exception e) {
