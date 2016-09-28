@@ -10,26 +10,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.aut.android.highlysecuretexter.LoginActivity">
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="textEmailAddress"
-        android:ems="10"
-        android:id="@+id/email_edit_text"
-        android:hint="vivian@needs-sleep.com"
-        android:layout_alignBaseline="@+id/Email_label"
-        android:layout_alignBottom="@+id/Email_label"
-        android:layout_toEndOf="@+id/Email_label" />
-
-    <TextView
-        android:text="Email :"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/Email_label"
-        android:layout_marginTop="21dp"
-        android:layout_below="@+id/phone_edit_text"
-        android:layout_alignParentStart="true" />
-
     <TextView
         android:text="Password :"
         android:layout_width="wrap_content"
@@ -48,15 +28,6 @@
         android:id="@+id/password_edit_text"
         android:hint="Apple123" />
 
-    <Button
-        android:text="REQUEST"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/email_request_button"
-        style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_below="@+id/Email_label"
-        android:layout_alignParentStart="true" />
-
     <TextView
         android:text="Number : "
         android:layout_width="wrap_content"
@@ -66,25 +37,47 @@
         android:layout_below="@+id/connect_button"
         android:layout_toStartOf="@+id/password_edit_text" />
 
+    <Button
+        android:text="Connect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/connect_button"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_alignBaseline="@+id/password_edit_text"
+        android:layout_alignBottom="@+id/password_edit_text"
+        android:layout_alignParentEnd="true" />
+
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:inputType="phone"
         android:ems="10"
         android:id="@+id/phone_edit_text"
+        android:text="0211245734"
         android:layout_alignBaseline="@+id/textView4"
         android:layout_alignBottom="@+id/textView4"
-        android:layout_alignEnd="@+id/connect_button"
-        android:text="0211245734" />
+        android:layout_toEndOf="@+id/textView4" />
 
-    <Button
-        android:text="Connect"
-        android:layout_width="match_parent"
+    <TextView
+        android:text="ST"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/connect_button"
-        style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_alignBaseline="@+id/textView8"
-        android:layout_alignBottom="@+id/textView8"
-        android:layout_toEndOf="@+id/email_edit_text" />
+        android:layout_marginBottom="84dp"
+        android:id="@+id/textView"
+        android:layout_above="@+id/connect_button"
+        android:layout_centerHorizontal="true"
+        android:textSize="50sp"
+        android:fontFamily="sans-serif"
+        android:lineSpacingExtra="30sp"
+        android:textAlignment="center"
+        android:typeface="sans" />
+
+    <TextView
+        android:text="Login"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView2"
+        android:layout_above="@+id/password_edit_text"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>

@@ -35,7 +35,7 @@ import static javax.crypto.Cipher.ENCRYPT_MODE;
 public class Utility {
 
     public final static byte[] salt = {-84, 40, -10, -53, -80, 90, -57, 125};
-    public final static String endpoint = "http://172.28.41.238:8080/PKAServerLatest2/webresources/pka/";
+    public final static String endpoint = "http://192.168.0.6:8080/PKAServerLatest2/webresources/pka/";
 
     // One off Key
     public static SecretKey ephemeralKey = null;
@@ -44,6 +44,8 @@ public class Utility {
     public static PublicKey pkaPubKey = null;
     public static PrivateKey privateKey = null;
     public static PublicKey publicKey = null;
+
+
 
 
     // Debugging function
@@ -70,6 +72,12 @@ public class Utility {
 
         // Create Encrypted encrypted data
         byte[] encryptedConnPackage = encryptConnectionData(pNumber);
+
+        // Base64 encode encrypted package into a string
+        String bytesEncoded = encodeToBase64(encryptedConnPackage);
+        
+        // Send request to join to PKA
+        doPost("join/"+pNumber+"/"+bytesEncoded);
     }
 
     public static void generateEphemeral(String password) {

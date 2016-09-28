@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -12,15 +11,10 @@ import android.widget.Toast;
 
 import com.aut.android.highlysecuretexter.Controller.Utility;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-
-import static android.R.attr.value;
-
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
     // Screen elements
-    private Button requestConnectionButton, connectButton;
+    private Button  connectButton;
     private EditText yourNumberEditText, passwordEditText;
 
     // Public Strings
@@ -39,9 +33,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         passwordEditText = (EditText) findViewById(R.id.password_edit_text);
 
         // Set buttons
-        requestConnectionButton = (Button) findViewById(R.id.email_request_button);
-        requestConnectionButton.setOnClickListener(this);
-
         connectButton = (Button) findViewById(R.id.connect_button);
         connectButton.setOnClickListener(this);
 
