@@ -12,6 +12,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.telephony.SmsMessage;
 import android.util.Log;
 import android.widget.Toast;
@@ -19,8 +20,7 @@ import android.widget.Toast;
 
 public class SMSBroadcastReceiver extends BroadcastReceiver
 {
-
-   public void onReceive(Context context, Intent intent)
+    public void onReceive(Context context, Intent intent)
    {  // obtain the SMS message
       Bundle bundle = intent.getExtras();
       if (bundle != null)

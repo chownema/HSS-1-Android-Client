@@ -1,11 +1,11 @@
 package com.aut.android.highlysecuretexter;
 
 import android.Manifest;
-import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -29,8 +29,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     public String password;
     public String number;
 
-    // Receiver
-    private SMSBroadcastReceiver receivedBroadcastReceiver;
+
+
 
 
     @Override
@@ -81,9 +81,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.RECEIVE_SMS}, 1);
 
-        receivedBroadcastReceiver = new SMSBroadcastReceiver();
-        registerReceiver(receivedBroadcastReceiver,
-                new IntentFilter("android.provider.Telephony.SMS_RECEIVED"));
+//        // Set SMS broadcast receiver
+//        receivedBroadcastReceiver = new SMSBroadcastReceiver();
+//        registerReceiver(receivedBroadcastReceiver,
+//                new IntentFilter("android.provider.Telephony.SMS_RECEIVED"));
     }
 
     @Override
