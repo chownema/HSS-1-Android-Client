@@ -1,10 +1,15 @@
 package com.aut.android.highlysecuretexter;
 
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.SmsManager;
+import android.telephony.SmsMessage;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
@@ -15,20 +20,25 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.aut.android.highlysecuretexter.Controller.SMSBroadcastReceiver;
 import com.aut.android.highlysecuretexter.Controller.Utility;
 
 import java.util.ArrayList;
 
 public class MessagingActivity extends AppCompatActivity implements View.OnClickListener {
 
-    FloatingActionButton sendMsgButton;
-    EditText inputMessage, cipherMessage, inputNumber;
-    ListView messageListView;
+    private FloatingActionButton sendMsgButton;
+    private EditText inputMessage, cipherMessage, inputNumber;
+    static ListView messageListView;
     Intent i;
 
     // Message List Var
-    ArrayList<String> messageList;
-    private ArrayAdapter<String> adapter;
+    static ArrayList<String> messageList;
+    private static ArrayAdapter<String> adapter;
+
+    // Receiver
+    private SMSBroadcastReceiver receivedBroadcastReceiver = null;
+    boolean mIsReceiverRegistered = false;
 
 
     @Override
@@ -54,30 +64,55 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
         // Set Layout to Be pushed up when Soft Keyboard is used
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
-
         /** Init Debug Variables **/
         Utility.initDebugValues();
     }
 
-    protected void sendSMSMessage() {
-        Log.i("Send SMS", "");
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!mIsReceiverRegistered) {
+            if (receivedBroadcastReceiver == null)
+                receivedBroadcastReceiver = new SMSBroadcastReceiver();
+            registerReceiver(receivedBroadcastReceiver, new IntentFilter("android.provider.Telephony.SMS_RECEIVED"));
+            mIsReceiverRegistered = true;
+        }
+    }
+
+    protected void sendSMSMessage()
+    {
         String phoneNum = i.getStringExtra("number");
-        // Encrypt String message
-//        s = s.substring(0, Math.min(s.length(), 10)); // need to split String message before sending
-        String msg = Utility.encryptAndEncodeString(inputMessage.getText().toString());
         try {
-            SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendTextMessage(phoneNum, null, msg, null, null);
+            // Break message into parts and send it
+            SmsManager sms = SmsManager.getDefault();
+            String ptMsg = inputMessage.getText().toString();
+            String msg = Utility.encryptAndEncodeString(ptMsg);
+            ArrayList<String> parts = sms.divideMessage(msg);
+            sms.sendMultipartTextMessage(phoneNum, null, parts, null, null);
             Toast.makeText(getApplicationContext(), "SMS sent " + msg, Toast.LENGTH_LONG).show();
+            // Update the UI after sending SMS
+            updateUI(ptMsg, true);
+        }
+        catch (Exception e)
+        {
+            Toast.makeText(getApplicationContext(),
+                    "SMS failed, please try again.", Toast.LENGTH_LONG).show();
         }
 
-        catch (Exception e) {
-            Toast.makeText(getApplicationContext(), "SMS failed, please try again.", Toast.LENGTH_LONG).show();
-            e.printStackTrace();
-        }
+    }
 
-        // Add it to the list
-        messageList.add("You :" + msg);
+    public static void updateUI(String msg, boolean sent)
+    {
+        if (sent)
+        {
+            // Add it to the list
+            messageList.add("You :" + msg);
+        }
+        else
+        {
+            messageList.add("Peer : " + msg);
+        }
         adapter.notifyDataSetChanged();
         messageListView.smoothScrollToPosition(messageList.size(), messageList.size());
     }
@@ -113,4 +148,34 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
             }break;
         }
     }
+
+    public static class SMSBroadcastReceiver extends BroadcastReceiver {
+        public void onReceive(Context context, Intent intent) {  // obtain the SMS message
+            Bundle bundle = intent.getExtras();
+            StringBuilder stringBuilder = new StringBuilder();
+            if (bundle != null) {
+                Object[] pdus = (Object[]) bundle.get("pdus");
+                for (int i = 0; i < pdus.length; i++) {
+                    SmsMessage message = SmsMessage.createFromPdu
+                            ((byte[]) pdus[i]);
+                    String receivedString = message.getDisplayMessageBody();
+                    String decryptedMessage = Utility.decodeAndDecryptString(receivedString);
+                    stringBuilder.append(decryptedMessage);
+                }
+
+                Toast toast = Toast.makeText(context,
+                        stringBuilder.toString(), Toast.LENGTH_SHORT);
+                toast.show();
+            } else {
+                Toast toast = Toast.makeText(context,
+                        "Error: no message data received", Toast.LENGTH_SHORT);
+                toast.show();
+            }
+
+            if(bundle !=null)
+                updateUI(stringBuilder.toString(), false);
+        }
+    }
 }
+
+

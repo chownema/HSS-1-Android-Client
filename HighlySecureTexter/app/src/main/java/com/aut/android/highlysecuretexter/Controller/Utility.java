@@ -1,5 +1,6 @@
 package com.aut.android.highlysecuretexter.Controller;
 
+import android.content.Context;
 import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
@@ -21,6 +22,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -31,6 +33,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import static javax.crypto.Cipher.ENCRYPT_MODE;
 
@@ -42,20 +45,22 @@ import static javax.crypto.Cipher.ENCRYPT_MODE;
 public class Utility {
 
     public final static byte[] salt = {-84, 40, -10, -53, -80, 90, -57, 125};
-    public final static String endpoint = "http://192.168.0.6:8080/PKAServerLatest2/webresources/pka/";
+    public final static String endpoint = "http://172.28.41.238:8080/PKAServerLatest2/webresources/pka/";
 
     // One off Key
     public static SecretKey ephemeralKey = null;
 
-    // Keys
+    // Keys for PKA
     public static PublicKey pkaPubKey = null;
     public static PrivateKey privateKey = null;
     public static PublicKey publicKey = null;
+
 
     // Aes Encryption
     private static IvParameterSpec initVector;
     private static byte[] ivBytes = { 1, -2, 3, -4, 5, -6, 7, -8, 9,
             -10, 11, -12, 13, -14, 15, -16 }; // random array of 16 bytes
+    private static SecretKey secretKey;
 
     // Debug variables
     public static PrivateKey privateKeyB = null;
@@ -124,6 +129,10 @@ public class Utility {
         // Generate Clients key pair
         generateKeys();
 
+        // Generate an AES secret key
+        secretKey = generateSecretKey(publicKey);
+
+
         // Create Encrypted encrypted data
         byte[] encryptedConnPackage = encryptConnectionData(pNumber);
 
@@ -132,6 +141,20 @@ public class Utility {
 
         // Send request to join to PKA
         doPost("join/"+pNumber+"/"+bytesEncoded);
+    }
+
+    /**
+     * Used to generate a secret key from a RSA Public key
+     * @param pubKey
+     * @return
+     */
+    private static SecretKey generateSecretKey (PublicKey pubKey)
+    {
+        // Take the first 16 bits of the key and return it for AES cipher
+        byte[] sKeyBytes = Arrays.copyOf(pubKey.getEncoded(), 16);
+        SecretKey sKey = new SecretKeySpec(sKeyBytes, "AES");
+
+        return sKey;
     }
 
     public static void generateEphemeral(String password) {
@@ -194,18 +217,20 @@ public class Utility {
 
     public static String encryptAndEncodeString(String message)
     {
-        try {
-            Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            rsaCipher.init(ENCRYPT_MODE, privateKey);
-            byte[] encrpytedMessageBytes = rsaCipher.doFinal(message.getBytes());
-            message = encodeToBase64(encrpytedMessageBytes);
-
-            // Split message into parts
-            if (message.length() > 160)
-            {
-                int remainder = message.length() % 160;
-            }
-        } catch (NoSuchAlgorithmException e)
+        try
+        {  // create a cipher
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            // initialize cipher for encryption
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, initVector);
+            // encrypt the plaintext
+            byte[] plaintext = message.getBytes();
+            byte[] ciphertext = cipher.doFinal(plaintext);
+            // base 64 encode the ciphertext as a string
+            String encodedString = Base64.encodeToString(ciphertext,
+                    Base64.DEFAULT);
+            return encodedString;
+        }
+        catch (NoSuchAlgorithmException e)
             {
                 e.printStackTrace();
             } catch (InvalidKeyException e) {
@@ -216,8 +241,45 @@ public class Utility {
                 e.printStackTrace();
             } catch (IllegalBlockSizeException e) {
                 e.printStackTrace();
+            } catch (InvalidAlgorithmParameterException e) {
+                e.printStackTrace();
             }
-        return message;
+            return message;
+    }
+
+    public static String decodeAndDecryptString(String encodedString)
+    {  String errorMessage = null;
+        // base 64 decode the Cipher text as a byte[]
+        byte[] ciphertext = Base64.decode(encodedString, Base64.DEFAULT);
+        try
+        {  // create a cipher
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            // initialize cipher for encryption
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, initVector);
+            // decrypt the ciphertext
+            byte[] deciphertext = cipher.doFinal(ciphertext);
+            return new String(deciphertext);
+        }
+        catch (NoSuchAlgorithmException e)
+        {  errorMessage = "Encryption algorithm not available: " + e;
+        }
+        catch (NoSuchPaddingException e)
+        {  errorMessage = "Padding scheme not available: " + e;
+        }
+        catch (InvalidKeyException e)
+        {  errorMessage = "Invalid key: " + e;
+        }
+        catch (InvalidAlgorithmParameterException e)
+        {  errorMessage = "Invalid algorithm parameter: " + e;
+        }
+        catch (IllegalBlockSizeException e)
+        {  errorMessage = "Cannot pad plaintext: " + e;
+        }
+        catch (BadPaddingException e)
+        {  errorMessage = "Exception with padding: " + e;
+        }
+        Log.e("Error", errorMessage);
+        return null;
     }
 
     /**
