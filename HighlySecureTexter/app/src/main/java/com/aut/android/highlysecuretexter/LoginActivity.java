@@ -25,7 +25,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     // Public Strings
     public String response;
     public String password;
-    public String number = "0212556332";
+    public String number;
 
 
     @Override
@@ -51,7 +51,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 try
                 {
                     // Gets the first time password
-                    password = Utility.getPassword(number);
+                    password = Utility.getPassword("1");
 
                 }
                 catch (Exception e) {e.printStackTrace();}
@@ -89,7 +89,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 protected Void doInBackground(Void... voids) {
                     try
                     {
-                        Utility.init(number, password);
+
+                        Utility.init("1", password);
                     } catch (Exception e) {e.printStackTrace();}
                     return null;
                 }
