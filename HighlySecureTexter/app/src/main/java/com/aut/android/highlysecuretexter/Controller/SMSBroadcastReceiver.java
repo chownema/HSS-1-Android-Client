@@ -32,11 +32,12 @@ public class SMSBroadcastReceiver extends BroadcastReceiver
             String senderAddress
                = message.getDisplayOriginatingAddress();
             String receivedString = message.getDisplayMessageBody();
+             String decryptedMessage = Utility.decodeAndDecryptString(receivedString);
 
-             Log.e("Message Received", "Message :: " + receivedString);
+             Log.e("Message Received", "Message :: " + decryptedMessage);
              stringBuilder.append("From :" + senderAddress);
              stringBuilder.append("Message : ");
-             stringBuilder.append(receivedString);
+             stringBuilder.append(decryptedMessage);
          }
 
          Toast toast = Toast.makeText(context,
