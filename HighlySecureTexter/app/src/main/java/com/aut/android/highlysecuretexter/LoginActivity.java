@@ -27,11 +27,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     // Public Strings
     public String response;
     public String password;
-    public String number;
-
-
-
-
+    public String number = "0212556332";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +52,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 try
                 {
                     // Gets the first time password
-                    password = Utility.getPassword("1");
+                    password = Utility.getPassword(number);
 
                 }
                 catch (Exception e) {e.printStackTrace();}
@@ -102,7 +98,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     try
                     {
 
-                        Utility.init("1", password);
+                        Utility.connectToPKA(number, password);
                     } catch (Exception e) {e.printStackTrace();}
                     return null;
                 }
