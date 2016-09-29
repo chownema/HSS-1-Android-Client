@@ -42,7 +42,7 @@ import static javax.crypto.Cipher.ENCRYPT_MODE;
 public class Utility {
 
     public final static byte[] salt = {-84, 40, -10, -53, -80, 90, -57, 125};
-    public final static String endpoint = "http://192.168.0.6:8080/PKAServerLatest2/webresources/pka/";
+    public final static String endpoint = "http://172.28.41.238:8080/PKAServerLatest2/webresources/pka/";
 
     // One off Key
     public static SecretKey ephemeralKey = null;
@@ -196,7 +196,7 @@ public class Utility {
     {
         try {
             Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            rsaCipher.init(ENCRYPT_MODE, privateKey);
+            rsaCipher.init(ENCRYPT_MODE, publicKey);
             byte[] encrpytedMessageBytes = rsaCipher.doFinal(message.getBytes());
             message = encodeToBase64(encrpytedMessageBytes);
 
@@ -204,6 +204,7 @@ public class Utility {
             if (message.length() > 160)
             {
                 int remainder = message.length() % 160;
+                Log.e("remiander", ""+remainder);
             }
         } catch (NoSuchAlgorithmException e)
             {

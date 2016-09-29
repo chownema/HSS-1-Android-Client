@@ -1,5 +1,6 @@
 package com.aut.android.highlysecuretexter;
 
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -59,27 +60,51 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
         Utility.initDebugValues();
     }
 
-    protected void sendSMSMessage() {
-        Log.i("Send SMS", "");
+//    protected void sendSMSMessage() {
+//        Log.i("Send SMS", "");
+//        String phoneNum = i.getStringExtra("number");
+//        // Encrypt String message
+////        s = s.substring(0, Math.min(s.length(), 10)); // need to split String message before sending
+//        String msg = Utility.encryptAndEncodeString(inputMessage.getText().toString());
+//        try {
+//            SmsManager smsManager = SmsManager.getDefault();
+//            smsManager.sendTextMessage(phoneNum, null, msg, null, null);
+//            Toast.makeText(getApplicationContext(), "SMS sent " + msg, Toast.LENGTH_LONG).show();
+//        }
+//
+//        catch (Exception e) {
+//            Toast.makeText(getApplicationContext(), "SMS failed, please try again.", Toast.LENGTH_LONG).show();
+//            e.printStackTrace();
+//        }
+//
+//        // Add it to the list
+//        messageList.add("You :" + msg);
+//        adapter.notifyDataSetChanged();
+//        messageListView.smoothScrollToPosition(messageList.size(), messageList.size());
+//    }
+
+    protected void sendSMSMessage()
+    {
         String phoneNum = i.getStringExtra("number");
-        // Encrypt String message
-//        s = s.substring(0, Math.min(s.length(), 10)); // need to split String message before sending
-        String msg = Utility.encryptAndEncodeString(inputMessage.getText().toString());
         try {
-            SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendTextMessage(phoneNum, null, msg, null, null);
+            // Break message into parts and send it
+            SmsManager sms = SmsManager.getDefault();
+            String msg = Utility.encryptAndEncodeString(inputMessage.getText().toString());
+            ArrayList<String> parts = sms.divideMessage(msg);
+            sms.sendMultipartTextMessage(phoneNum, null, parts, null, null);
             Toast.makeText(getApplicationContext(), "SMS sent " + msg, Toast.LENGTH_LONG).show();
+
+            // Add it to the list
+            messageList.add("You :" + msg);
+            adapter.notifyDataSetChanged();
+            messageListView.smoothScrollToPosition(messageList.size(), messageList.size());
+        }
+        catch (Exception e)
+        {
+            Toast.makeText(getApplicationContext(),
+                    "SMS failed, please try again.", Toast.LENGTH_LONG).show();
         }
 
-        catch (Exception e) {
-            Toast.makeText(getApplicationContext(), "SMS failed, please try again.", Toast.LENGTH_LONG).show();
-            e.printStackTrace();
-        }
-
-        // Add it to the list
-        messageList.add("You :" + msg);
-        adapter.notifyDataSetChanged();
-        messageListView.smoothScrollToPosition(messageList.size(), messageList.size());
     }
 
 
