@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +15,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.aut.android.highlysecuretexter.Controller.SMSBroadcastReceiver;
 import com.aut.android.highlysecuretexter.Controller.Utility;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
@@ -26,6 +28,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     public String response;
     public String password;
     public String number;
+
+    // Receiver
+    private SMSBroadcastReceiver receivedBroadcastReceiver;
 
 
     @Override
@@ -73,6 +78,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.SEND_SMS}, 1);
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.RECEIVE_SMS}, 1);
+
+        receivedBroadcastReceiver = new SMSBroadcastReceiver();
+        registerReceiver(receivedBroadcastReceiver,
+                new IntentFilter("android.provider.Telephony.SMS_RECEIVED"));
     }
 
     @Override
