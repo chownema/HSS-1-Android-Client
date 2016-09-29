@@ -11,6 +11,8 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.aut.android.highlysecuretexter.Controller.Utility;
+
 import java.util.ArrayList;
 
 public class ContactsActivity extends AppCompatActivity implements View.OnClickListener {
@@ -65,8 +67,17 @@ public class ContactsActivity extends AppCompatActivity implements View.OnClickL
     public void onClick(View view) {
         if (view == refreshButton)
         {
-            Log.d("Refresh Contacts", "Refreshing...");
-            Toast.makeText(getApplicationContext(), "Refreshing Contacts", Toast.LENGTH_SHORT).show();
+            // Get contact data from rest endpoint
+            String[] contacts = Utility.getContacts("0212556332");
+            // Clear list
+            adapter.clear();
+            // Insert items
+            for(int i = 0; i < contacts.length; i++)
+                adapter.insert(contacts[i], i);
+            // Notify data changed
+            adapter.notifyDataSetChanged();
+            // Notify client of update
+            Toast.makeText(getApplicationContext(), "Contacts Refreshed", Toast.LENGTH_SHORT).show();
         }
     }
 }

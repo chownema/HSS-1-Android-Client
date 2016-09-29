@@ -45,7 +45,7 @@ import static javax.crypto.Cipher.ENCRYPT_MODE;
 public class Utility {
 
     public final static byte[] salt = {-84, 40, -10, -53, -80, 90, -57, 125};
-    public final static String endpoint = "http://172.28.41.238:8080/PKAServerLatest2/webresources/pka/";
+    public final static String endpoint = "http://192.168.20.2:8080/PKAServer/webresources/pka/";
 
     // One off Key
     public static SecretKey ephemeralKey = null;
@@ -54,7 +54,6 @@ public class Utility {
     public static PublicKey pkaPubKey = null;
     public static PrivateKey privateKey = null;
     public static PublicKey publicKey = null;
-
 
     // Aes Encryption
     private static IvParameterSpec initVector;
@@ -113,7 +112,7 @@ public class Utility {
 
     }
 
-    public static void init(String pNumber, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public static void connectToPKA(String pNumber, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
         // get pka key
         pkaPubKey = KeyFactory.getInstance("RSA").generatePublic
                 (new X509EncodedKeySpec(decodeFromBase64(doPost("pkakey"))));
@@ -124,7 +123,7 @@ public class Utility {
         }
 
         // Get password and generate one time key
-        generateEphemeral(password);
+        //generateEphemeral(password);
 
         // Generate Clients key pair
         generateKeys();
@@ -155,6 +154,12 @@ public class Utility {
         SecretKey sKey = new SecretKeySpec(sKeyBytes, "AES");
 
         return sKey;
+    }
+
+    public static String[] getContacts(String mobile) {
+
+        String response = doPost("numbers/" + mobile);
+        return response.split(", ");
     }
 
     public static void generateEphemeral(String password) {
@@ -189,25 +194,25 @@ public class Utility {
 
         try {
             // Prep cipher
-            Cipher pbeCipher = Cipher.getInstance("PBEWithMD5AndDES/CBC/PKCS5Padding");
-            pbeCipher.init(ENCRYPT_MODE, ephemeralKey, new PBEParameterSpec(salt, 1000));
+            //Cipher pbeCipher = Cipher.getInstance("PBEWithMD5AndDES/CBC/PKCS5Padding");
+            //pbeCipher.init(ENCRYPT_MODE, ephemeralKey, new PBEParameterSpec(salt, 1000));
 
             // Encrypt nonce with pub key of pka (added security)
-            Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            rsaCipher.init(ENCRYPT_MODE, pkaPubKey);
-            byte[] nonceBytes = rsaCipher.doFinal(phoneNum.getBytes());
+            //Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            //rsaCipher.init(ENCRYPT_MODE, pkaPubKey);
+            //byte[] nonceBytes = rsaCipher.doFinal(phoneNum.getBytes());
 
             // Package data
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            baos.write(phoneNum.getBytes());
-            baos.write("---".getBytes());
-            baos.write(Base64.encode(nonceBytes, Base64.DEFAULT)); // encrypted with private RSA
-            baos.write("---".getBytes());
-            baos.write(Base64.encode(publicKey.getEncoded(), Base64.DEFAULT));
+            //ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            //baos.write(phoneNum.getBytes());
+            //baos.write("---".getBytes());
+            //baos.write(Base64.encode(nonceBytes, Base64.NO_WRAP)); // encrypted with private RSA
+            //baos.write("---".getBytes());
+            //baos.write(Base64.encode(publicKey.getEncoded(), Base64.NO_WRAP));
 
             // Encrypt and return
-            byte[] cipherBytes = pbeCipher.doFinal(baos.toByteArray());
-            return cipherBytes;
+            //byte[] cipherBytes = pbeCipher.doFinal(baos.toByteArray());
+            return publicKey.getEncoded();
 
         } catch (Exception ex) {
             Log.e("Error", ex.toString());
@@ -227,7 +232,7 @@ public class Utility {
             byte[] ciphertext = cipher.doFinal(plaintext);
             // base 64 encode the ciphertext as a string
             String encodedString = Base64.encodeToString(ciphertext,
-                    Base64.DEFAULT);
+                    Base64.NO_WRAP);
             return encodedString;
         }
         catch (NoSuchAlgorithmException e)
@@ -250,7 +255,7 @@ public class Utility {
     public static String decodeAndDecryptString(String encodedString)
     {  String errorMessage = null;
         // base 64 decode the Cipher text as a byte[]
-        byte[] ciphertext = Base64.decode(encodedString, Base64.DEFAULT);
+        byte[] ciphertext = Base64.decode(encodedString, Base64.NO_WRAP);
         try
         {  // create a cipher
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -290,12 +295,12 @@ public class Utility {
         // HTML decode from transport
         cipher = cipher.replace("%2B", "+").replace("%2F", "/");
         // Base64 decode
-        return Base64.decode(cipher, Base64.DEFAULT);
+        return Base64.decode(cipher, Base64.NO_WRAP);
     }
 
     public static String encodeToBase64(byte[] data) {
         // Encode bytes into base64
-        String encodedData = Base64.encodeToString(data, Base64.DEFAULT);
+        String encodedData = Base64.encodeToString(data, Base64.NO_WRAP);
         // HTML encode for transport
         return encodedData.replace("+", "%2B").replace("/", "%2F");
     }
