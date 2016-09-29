@@ -21,6 +21,8 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -42,7 +44,7 @@ import static javax.crypto.Cipher.ENCRYPT_MODE;
 public class Utility {
 
     public final static byte[] salt = {-84, 40, -10, -53, -80, 90, -57, 125};
-    public final static String endpoint = "http://192.168.0.6:8080/PKAServerLatest2/webresources/pka/";
+    public final static String endpoint = "http://172.28.56.205:8080/PKAServer/webresources/pka/";
 
     // One off Key
     public static SecretKey ephemeralKey = null;
@@ -108,10 +110,19 @@ public class Utility {
 
     }
 
-    public static void init(String pNumber, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public static void init(String pNumber, String password) {
+
+        byte[] pkaPubKeyBytes = decodeFromBase64(doPost("pkakey"));
+
         // get pka key
-        pkaPubKey = KeyFactory.getInstance("RSA").generatePublic
-                (new X509EncodedKeySpec(decodeFromBase64(doPost("pkakey"))));
+        try {
+            pkaPubKey = KeyFactory.getInstance("RSA").generatePublic
+                    (new X509EncodedKeySpec(pkaPubKeyBytes));
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
 
         // Check PKA Key is null
         if (pkaPubKey == null) {
@@ -139,12 +150,12 @@ public class Utility {
         SecretKey key = null;
 
         try {
-            char[] passwordChar = password.toCharArray();
+            char[] passwordChar = "Apple123".toCharArray();
             PBEKeySpec pbeSpec = new PBEKeySpec(passwordChar, salt, 1000);
             SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBEWithMD5AndDES");
             key = keyFactory.generateSecret(pbeSpec);
-        } catch (Exception ex) {
-            Log.e("Error", ex.toString());
+        } catch (NoSuchAlgorithmException ex) {
+        } catch (InvalidKeySpecException ex) {
         }
 
         ephemeralKey = key;
@@ -170,20 +181,21 @@ public class Utility {
             pbeCipher.init(ENCRYPT_MODE, ephemeralKey, new PBEParameterSpec(salt, 1000));
 
             // Encrypt nonce with pub key of pka (added security)
-            Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            rsaCipher.init(ENCRYPT_MODE, pkaPubKey);
-            byte[] nonceBytes = rsaCipher.doFinal(phoneNum.getBytes());
+//            Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+//            rsaCipher.init(ENCRYPT_MODE, pkaPubKey);
+//            byte[] nonceBytes = rsaCipher.doFinal(phoneNum.getBytes());
 
             // Package data
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             baos.write(phoneNum.getBytes());
-            baos.write("---".getBytes());
-            baos.write(Base64.encode(nonceBytes, Base64.DEFAULT)); // encrypted with private RSA
-            baos.write("---".getBytes());
-            baos.write(Base64.encode(publicKey.getEncoded(), Base64.DEFAULT));
+//            baos.write("---".getBytes());
+//            baos.write(Base64.encode(nonceBytes, Base64.NO_WRAP)); // encrypted with private RSA
+//            baos.write("---".getBytes());
+//            baos.write(Base64.encode(publicKey.getEncoded(), Base64.NO_WRAP));
 
             // Encrypt and return
             byte[] cipherBytes = pbeCipher.doFinal(baos.toByteArray());
+
             return cipherBytes;
 
         } catch (Exception ex) {
@@ -228,16 +240,15 @@ public class Utility {
         // HTML decode from transport
         cipher = cipher.replace("%2B", "+").replace("%2F", "/");
         // Base64 decode
-        return Base64.decode(cipher, Base64.DEFAULT);
+        return Base64.decode(cipher, Base64.NO_WRAP);
     }
 
     public static String encodeToBase64(byte[] data) {
         // Encode bytes into base64
-        String encodedData = Base64.encodeToString(data, Base64.DEFAULT);
+        String encodedData = Base64.encodeToString(data, Base64.NO_WRAP);
         // HTML encode for transport
         return encodedData.replace("+", "%2B").replace("/", "%2F");
     }
-
 
     public static String doPost(String restMethod) {
 
