@@ -91,7 +91,8 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
             // Break message into parts and send it
             SmsManager sms = SmsManager.getDefault();
             String ptMsg = inputMessage.getText().toString();
-            String msg = Crypto.encryptAndEncodeMessage(ptMsg, client.);
+            // TODO: add secret key from contacts hash map
+            String msg = Crypto.encryptAndEncodeMessage(ptMsg, null);
             ArrayList<String> parts = sms.divideMessage(msg);
             sms.sendMultipartTextMessage(phoneNum, null, parts, null, null);
             Toast.makeText(getApplicationContext(), "SMS sent " + msg, Toast.LENGTH_LONG).show();
@@ -163,7 +164,8 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
                     SmsMessage message = SmsMessage.createFromPdu
                             ((byte[]) pdus[i]);
                     String receivedString = message.getDisplayMessageBody();
-                    String decryptedMessage = Crypto.decodeAndDecryptMessage(receivedString);
+                    // TODO: add secret key from contacts hash map
+                    String decryptedMessage = Crypto.decodeAndDecryptMessage(receivedString, null);
                     stringBuilder.append(decryptedMessage);
                 }
 
