@@ -15,19 +15,22 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.aut.android.highlysecuretexter.Controller.SMSBroadcastReceiver;
+import com.aut.android.highlysecuretexter.Controller.Client;
+import com.aut.android.highlysecuretexter.Controller.Network;
 import com.aut.android.highlysecuretexter.Controller.Utility;
+
+import javax.crypto.SecretKey;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
     // Screen elements
-    private Button  connectButton;
-    private EditText yourNumberEditText, passwordEditText;
+    private Button connectButton;
+    private EditText mobileTextField, passwordTextField;
 
     // Public Strings
-    public String response;
-    public String password;
-    public String number = "0212556332";
+    //public String response;
+    private String mobile = "0212556332";
+    private Client client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,25 +38,22 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         setContentView(R.layout.login_activity);
 
         // Set Edit Text
-        yourNumberEditText = (EditText) findViewById(R.id.phone_edit_text);
-        passwordEditText = (EditText) findViewById(R.id.password_edit_text);
-
-
+        mobileTextField = (EditText) findViewById(R.id.phone_edit_text);
         // Set buttons
         connectButton = (Button) findViewById(R.id.connect_button);
         connectButton.setOnClickListener(this);
 
         // Get one time password debug
-        Toast.makeText(this, "DEBUG : Getting one time password..", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Getting Ephemeral key...", Toast.LENGTH_SHORT).show();
         new AsyncTask<Void, Void, Void>()
         {
             @Override
             protected Void doInBackground(Void... voids) {
                 try
                 {
-                    // Gets the first time password
-                    password = Utility.getPassword(number);
-
+                    SecretKey ephemeral = Network.getEphemeralKey(mobile);
+                    // Create client and populate ephemeral key
+                    setClient(new Client(mobile, ephemeral));
                 }
                 catch (Exception e) {e.printStackTrace();}
                 return null;
@@ -62,9 +62,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
-                Toast.makeText(getApplicationContext(),
-                        password, Toast.LENGTH_SHORT).show();
-                setPasswordText();
+
+                if(client.getEphemeralKey() != null)
+                    Toast.makeText(getApplicationContext(),
+                            "Ephemeral has been received", Toast.LENGTH_SHORT).show();
+                else
+                    Toast.makeText(getApplicationContext(),
+                            "Error - Ephemeral has not been received", Toast.LENGTH_SHORT).show();
             }
 
         }.execute();
@@ -88,42 +92,33 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Connect to the server with the encrypted cipher array
         if (view == connectButton)
         {
-            TelephonyManager tMgr = (TelephonyManager) getApplication().getSystemService(Context.TELEPHONY_SERVICE);
-            String mPhoneNumber = tMgr.getLine1Number();
-            Toast.makeText(getApplicationContext(), "Connecting..." + password, Toast.LENGTH_SHORT).show();
-
+            Toast.makeText(getApplicationContext(), "Connecting to PKA Server...", Toast.LENGTH_SHORT).show();
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... voids) {
                     try
                     {
-
-                        Utility.connectToPKA(number, password);
+                        Network.connectToPKA(client);
                     } catch (Exception e) {e.printStackTrace();}
                     return null;
                 }
 
                 @Override
                 protected void onPostExecute(Void aVoid) {
-                    Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+                    if(client.isPkaConnected()) {
+                        Toast.makeText(getApplicationContext(), "Successfully connected to PKA", Toast.LENGTH_SHORT).show();
+                        Intent myIntent = new Intent(LoginActivity.this, ContactsActivity.class);
+                        myIntent.putExtra("client", client);
+                        startActivity(myIntent);
+                    }
+                    else
+                        Toast.makeText(getApplicationContext(), "Unable to connect to PKA", Toast.LENGTH_SHORT).show();
                 }
             }.execute();
-
-
-
-            // Put If statement blocking for server response
-            Intent myIntent = new Intent(LoginActivity.this, ContactsActivity.class);
-            myIntent.putExtra("key", ""); //Optional parameters
-            LoginActivity.this.startActivity(myIntent);
         }
     }
 
-    /**
-     * Setters
-     */
-
-    public void setPasswordText()
-    {
-        passwordEditText.setText(password);
+    private void setClient(Client temp) {
+        this.client = temp;
     }
 }
