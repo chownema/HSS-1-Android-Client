@@ -11,12 +11,15 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.aut.android.highlysecuretexter.Controller.Client;
+import com.aut.android.highlysecuretexter.Controller.Network;
 import com.aut.android.highlysecuretexter.Controller.Utility;
 
 import java.util.ArrayList;
 
 public class ContactsActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private Client client;
     private Button refreshButton;
     private ListView contactsListView;
     private ArrayAdapter<String> adapter;
@@ -31,36 +34,32 @@ public class ContactsActivity extends AppCompatActivity implements View.OnClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contacts);
 
+        // Get client data from previous activity intent
+        client = (Client) getIntent().getSerializableExtra("client");
+
+        // TODO: Get active clients
+
         // Init List view
         contactsListView = (ListView) findViewById(R.id.contacts_list_view);
 
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, contactsList);
         contactsListView.setAdapter(adapter);
 
-
         // Init Buttons
         refreshButton = (Button) findViewById(R.id.refresh_contacts_button);
         refreshButton.setOnClickListener(this);
 
         // Init on click list
-        contactsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-
-                Toast.makeText(getApplicationContext(), contactsList.get(position) + "CLICKED", Toast.LENGTH_SHORT).show();
-                Intent myIntent = new Intent(ContactsActivity.this, MessagingActivity.class);
-                myIntent.putExtra("number", contactsList.get(position)); //Optional parameters
-                ContactsActivity.this.startActivity(myIntent);
-            }
-        });
-
-
-    }
-
-
-    private void populateContacts()
-    {
-        // Fill List view with contacts
+//        contactsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            public void onItemClick(AdapterView<?> parent, View view,
+//                                    int position, long id) {
+//
+//                Toast.makeText(getApplicationContext(), contactsList.get(position) + "CLICKED", Toast.LENGTH_SHORT).show();
+//                Intent myIntent = new Intent(ContactsActivity.this, MessagingActivity.class);
+//                myIntent.putExtra("number", contactsList.get(position)); //Optional parameters
+//                ContactsActivity.this.startActivity(myIntent);
+//            }
+//        });
     }
 
     @Override
@@ -68,7 +67,7 @@ public class ContactsActivity extends AppCompatActivity implements View.OnClickL
         if (view == refreshButton)
         {
             // Get contact data from rest endpoint
-            String[] contacts = Utility.getContacts("0212556332");
+            String[] contacts = Network.updateContacts(client);
             // Clear list
             adapter.clear();
             // Insert items
