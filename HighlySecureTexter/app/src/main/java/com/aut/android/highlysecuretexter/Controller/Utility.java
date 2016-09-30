@@ -103,90 +103,12 @@ public class Utility {
 //    }
 //
 //
-//    /**
-//     * Used to generate a secret key from a RSA Public key
-//     * @param pubKey
-//     * @return
-//     */
-//    private static SecretKey generateSecretKey (PublicKey pubKey)
-//    {
-//        // Take the first 16 bits of the key and return it for AES cipher
-//        byte[] sKeyBytes = Arrays.copyOf(pubKey.getEncoded(), 16);
-//        SecretKey sKey = new SecretKeySpec(sKeyBytes, "AES");
-//
-//        return sKey;
-//    }
+
 //
 //
 //
 //
 //
-//    public static String encryptAndEncodeString(String message)
-//    {
-//        try
-//        {  // create a cipher
-//            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-//            // initialize cipher for encryption
-//            cipher.init(Cipher.ENCRYPT_MODE, secretKey, initVector);
-//            // encrypt the plaintext
-//            byte[] plaintext = message.getBytes();
-//            byte[] ciphertext = cipher.doFinal(plaintext);
-//            // base 64 encode the ciphertext as a string
-//            String encodedString = Base64.encodeToString(ciphertext,
-//                    Base64.NO_WRAP);
-//            return encodedString;
-//        }
-//        catch (NoSuchAlgorithmException e)
-//            {
-//                e.printStackTrace();
-//            } catch (InvalidKeyException e) {
-//                e.printStackTrace();
-//            } catch (NoSuchPaddingException e) {
-//                e.printStackTrace();
-//            } catch (BadPaddingException e) {
-//                e.printStackTrace();
-//            } catch (IllegalBlockSizeException e) {
-//                e.printStackTrace();
-//            } catch (InvalidAlgorithmParameterException e) {
-//                e.printStackTrace();
-//            }
-//            return message;
-//    }
-//
-//    public static String decodeAndDecryptString(String encodedString)
-//    {  String errorMessage = null;
-//        // base 64 decode the Cipher text as a byte[]
-//        byte[] ciphertext = Base64.decode(encodedString, Base64.NO_WRAP);
-//        try
-//        {  // create a cipher
-//            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-//            // initialize cipher for encryption
-//            cipher.init(Cipher.DECRYPT_MODE, secretKey, initVector);
-//            // decrypt the ciphertext
-//            byte[] deciphertext = cipher.doFinal(ciphertext);
-//            return new String(deciphertext);
-//        }
-//        catch (NoSuchAlgorithmException e)
-//        {  errorMessage = "Encryption algorithm not available: " + e;
-//        }
-//        catch (NoSuchPaddingException e)
-//        {  errorMessage = "Padding scheme not available: " + e;
-//        }
-//        catch (InvalidKeyException e)
-//        {  errorMessage = "Invalid key: " + e;
-//        }
-//        catch (InvalidAlgorithmParameterException e)
-//        {  errorMessage = "Invalid algorithm parameter: " + e;
-//        }
-//        catch (IllegalBlockSizeException e)
-//        {  errorMessage = "Cannot pad plaintext: " + e;
-//        }
-//        catch (BadPaddingException e)
-//        {  errorMessage = "Exception with padding: " + e;
-//        }
-//        Log.e("Error", errorMessage);
-//        return null;
-//    }
 
     public static byte[] decodeFromBase64(String cipher) {
         // HTML decode from transport
