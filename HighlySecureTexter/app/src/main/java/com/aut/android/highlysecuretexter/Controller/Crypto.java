@@ -4,12 +4,17 @@ import android.util.Base64;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEParameterSpec;
 
 import static javax.crypto.Cipher.ENCRYPT_MODE;
 
@@ -31,9 +36,7 @@ public class Crypto {
             aesCipher.init(Cipher.ENCRYPT_MODE, ephemeral, initVector);
 
             //Encrypt nonce with pub key of pka (added security)
-            Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            rsaCipher.init(ENCRYPT_MODE, pkaPublicKey);
-            byte[] nonceBytes = rsaCipher.doFinal(client.getMobile().getBytes());
+            byte[] nonceBytes = encryptRSA(pkaPublicKey, client.getMobile().getBytes());
 
             //Package data
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -44,7 +47,6 @@ public class Crypto {
             baos.write(Base64.encode(client.getPublicKey().getEncoded(), Base64.NO_WRAP));
 
             // Encrypt and return
-            //byte[] cipherBytes = pbeCipher.doFinal(baos.toByteArray());
             byte[] cipherBytes = aesCipher.doFinal(baos.toByteArray());
             return cipherBytes;
 
@@ -52,5 +54,51 @@ public class Crypto {
             Log.e("Error", ex.toString());
         }
         return null;
+    }
+
+    public static byte[] encryptRSA(Key key, byte[] data) {
+
+        byte[] encrypted = null;
+
+        try {
+            Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            rsaCipher.init(Cipher.ENCRYPT_MODE, key);
+            encrypted = rsaCipher.doFinal(data);
+        } catch (NoSuchAlgorithmException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        } catch (InvalidKeyException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        } catch (NoSuchPaddingException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        } catch (BadPaddingException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        } catch (IllegalBlockSizeException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        }
+
+        return encrypted;
+    }
+
+    public static byte[] decryptRSA(Key key, byte[] data) {
+
+        byte[] decrypted = null;
+
+        try {
+            Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            rsaCipher.init(Cipher.DECRYPT_MODE, key);
+            decrypted = rsaCipher.doFinal(data);
+        } catch (NoSuchAlgorithmException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        } catch (InvalidKeyException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        } catch (NoSuchPaddingException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        } catch (BadPaddingException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        } catch (IllegalBlockSizeException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        }
+
+        return decrypted;
     }
 }

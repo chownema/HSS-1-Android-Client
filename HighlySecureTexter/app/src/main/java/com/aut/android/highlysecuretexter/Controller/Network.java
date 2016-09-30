@@ -33,9 +33,11 @@ public class Network {
             conn.setRequestMethod("POST");
 
             if (conn.getResponseCode() != 200) {
-                throw new RuntimeException("Failed : HTTP error code : "
+                Log.e("Error Posting", "Failed : HTTP error code : "
                         + conn.getResponseCode());
-            }
+                throw new RuntimeException("Failed : HTTP error code : "
+                    + conn.getResponseCode());
+        }
 
             BufferedReader br = new BufferedReader(new InputStreamReader(
                     (conn.getInputStream())));
@@ -98,7 +100,19 @@ public class Network {
 
     public static String[] updateContacts(Client client) {
 
-        String response = doPost("numbers/" + client.getMobile());
-        return response.split(", ");
+        //byte[] inner = Crypto.encryptRSA(client.getPrivateKey(), client.getMobile().getBytes());
+        byte[] outer = Crypto.encryptRSA(pkaPublicKey, client.getMobile().getBytes());
+        String encoded = Utility.encodeToBase64(outer);
+
+        // Request up to date contacts
+        String response = doPost("numbers/" + client.getMobile() + "/" + encoded);
+
+        byte[] decoded = Utility.decodeFromBase64(response);
+        outer = Crypto.decryptRSA(client.getPrivateKey(), decoded);
+        //inner = Crypto.decryptRSA(pkaPublicKey, outer);
+
+        String contactData = new String(outer);
+
+        return contactData.split(", ");
     }
 }

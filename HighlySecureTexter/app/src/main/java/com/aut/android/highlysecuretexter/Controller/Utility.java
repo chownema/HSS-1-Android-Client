@@ -190,7 +190,7 @@ public class Utility {
 
     public static byte[] decodeFromBase64(String cipher) {
         // HTML decode from transport
-        cipher = cipher.replace("%2B", "+").replace("%2F", "/");
+        cipher = cipher.replace("%2B", "+").replace("%2F", "/").replace("%3D", "=");
         // Base64 decode
         return Base64.decode(cipher, Base64.NO_WRAP);
     }
@@ -199,24 +199,6 @@ public class Utility {
         // Encode bytes into base64
         String encodedData = Base64.encodeToString(data, Base64.NO_WRAP);
         // HTML encode for transport
-        return encodedData.replace("+", "%2B").replace("/", "%2F");
-    }
-
-    public static Object deserialize(byte[] data) {
-
-        try {
-            ByteArrayInputStream in = new ByteArrayInputStream(data);
-            ObjectInputStream is = new ObjectInputStream(in);
-            return is.readObject();
-        } catch (OptionalDataException e) {
-            e.printStackTrace();
-        } catch (StreamCorruptedException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return encodedData.replace("+", "%2B").replace("/", "%2F").replace("=", "%3D");
     }
 }
