@@ -53,6 +53,10 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
         setTitle(i.getStringExtra("number"));
         client = (Client) i.getSerializableExtra("client");
 
+        // TODO: Need to Send request to contact to initiate conversation
+
+        // TODO: Recieve Aknowledgement and add Secret key given by the contact
+
         // Init Message List View
         messageList = new ArrayList<>();
         messageListView = (ListView) findViewById(R.id.message_list_view);
@@ -149,11 +153,18 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
     public void onClick(View v) {
         switch(v.getId()){
             case (R.id.floatingActionButton_send):{
+                // Send a Message
                 sendSMSMessage();
             }break;
         }
     }
 
+
+    /**
+     * public static Broadcast Receiver class which on receiving a text message
+     * updates the clients Message list. Since Broadcast receivers do not have
+     * a way of updating a UI from outside its class it has been implemented here.
+     */
     public static class SMSBroadcastReceiver extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {  // obtain the SMS message
             Bundle bundle = intent.getExtras();

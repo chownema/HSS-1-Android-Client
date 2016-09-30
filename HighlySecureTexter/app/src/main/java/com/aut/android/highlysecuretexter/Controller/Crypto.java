@@ -4,9 +4,12 @@ import android.util.Base64;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Arrays;
 
@@ -16,13 +19,11 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-
-import static javax.crypto.Cipher.ENCRYPT_MODE;
 
 /**
  * Created by Adam on 30/09/16.
+ * Edited by Miguel on 30/09/16
  */
 
 public class Crypto {
@@ -39,9 +40,7 @@ public class Crypto {
             aesCipher.init(Cipher.ENCRYPT_MODE, ephemeral, initVector);
 
             //Encrypt nonce with pub key of pka (added security)
-            Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            rsaCipher.init(ENCRYPT_MODE, pkaPublicKey);
-            byte[] nonceBytes = rsaCipher.doFinal(client.getMobile().getBytes());
+            byte[] nonceBytes = encryptRSA(pkaPublicKey, client.getMobile().getBytes());
 
             //Package data
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -61,6 +60,29 @@ public class Crypto {
         return null;
     }
 
+    /**
+     * Function which encapsulates the request of a public key of a contact
+     * with encryption of the mobile number of the contact with RSA using the
+     * clients Private key.
+     * @param contactNumber
+     * @param clientPrivateKey
+     * @return Byte array of the request for a contacts public key
+     */
+    public static byte[] encryptPublicKeyRequest(String contactNumber, PrivateKey clientPrivateKey)
+    {
+        // Encrypt nonce/contact's number with Clients Private key
+        byte[] nonceBytes = encryptRSA(clientPrivateKey, contactNumber.getBytes());
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try
+        {
+            baos.write(Base64.encode(nonceBytes, Base64.NO_WRAP)); // encrypted with private RSA
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return baos.toByteArray();
+    }
 
     /***
      * Function which Encrypts and Encodes a String With AES and Base64.
@@ -167,4 +189,49 @@ public class Crypto {
         return sKey;
     }
 
+    public static byte[] encryptRSA(Key key, byte[] data) {
+
+        byte[] encrypted = null;
+
+        try {
+            Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            rsaCipher.init(Cipher.ENCRYPT_MODE, key);
+            encrypted = rsaCipher.doFinal(data);
+        } catch (NoSuchAlgorithmException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        } catch (InvalidKeyException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        } catch (NoSuchPaddingException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        } catch (BadPaddingException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        } catch (IllegalBlockSizeException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        }
+
+        return encrypted;
+    }
+
+    public static byte[] decryptRSA(Key key, byte[] data) {
+
+        byte[] decrypted = null;
+
+        try {
+            Cipher rsaCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            rsaCipher.init(Cipher.DECRYPT_MODE, key);
+            decrypted = rsaCipher.doFinal(data);
+        } catch (NoSuchAlgorithmException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        } catch (InvalidKeyException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        } catch (NoSuchPaddingException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        } catch (BadPaddingException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        } catch (IllegalBlockSizeException e) {
+            Log.e("RSA Encrypt Error:", e.getMessage());
+        }
+
+        return decrypted;
+    }
 }
