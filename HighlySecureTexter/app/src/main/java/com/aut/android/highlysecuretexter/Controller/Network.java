@@ -61,7 +61,7 @@ public class Network {
     }
 
     public static void connectToPKA(Client client) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        // get pka key
+        // get PKA Key
         String response = doPost("pkakey");
         byte[] pkaPublicKeyBytes = Utility.decodeFromBase64(response);
         pkaPublicKey = KeyFactory.getInstance("RSA").generatePublic
@@ -114,5 +114,26 @@ public class Network {
         String contactData = new String(outer);
 
         return contactData.split(", ");
+    }
+
+    public static SecretKey getContactPublicKey(String contactNumber, String clientNumber) {
+
+        SecretKey contactSKey = null;
+
+        try {
+            String cipherString = "";
+            String contactPublicKey = doPost("publickey/"+clientNumber+"/"+cipherString);
+            contactSKey = Crypto.generateSecretKey(contactPublicKey);
+        }
+        catch (Exception e){
+            Log.e("Error", e.toString());
+        }
+
+        if (contactSKey == null) {
+            throw new RuntimeException("Public Key Request ERROR");
+        }
+
+
+        return contactSKey;
     }
 }

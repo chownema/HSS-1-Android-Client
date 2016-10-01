@@ -8,9 +8,12 @@ import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
+import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
@@ -176,15 +179,36 @@ public class Crypto {
     }
 
     /**
-     * Used to generate a Secret AES key from a RSA Public key
-     * @param pubKey
+     * Used to generate a Secret AES key from a RSA Public key String
+     * The Function creates a RSA public key instance with the pubkeystring
+     * then takes the first 16 bytes of the key to create an AES secret key
+     * which it returns.
+     * @param pubKeyString
      * @return Secret AES key for Client to Contact communication
      */
-    private static SecretKey generateSecretKey (PublicKey pubKey)
-    {
-        // Take the first 16 bits of the key and return it for AES cipher
-        byte[] sKeyBytes = Arrays.copyOf(pubKey.getEncoded(), 16);
-        SecretKey sKey = new SecretKeySpec(sKeyBytes, "AES");
+    public static SecretKey generateSecretKey (String pubKeyString) {
+        SecretKey sKey = null;
+        try {
+            // Generate public RSA key with string bytes
+            byte PubKeyBytes[] = pubKeyString.getBytes();
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(PubKeyBytes);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            PublicKey pubKey = keyFactory.generatePublic(keySpec);
+            // Take the first 16 bits the key and return it for AES cipher
+            byte sKeyBytes[] = Arrays.copyOf(pubKey.getEncoded(), 16);
+            sKey = new SecretKeySpec(sKeyBytes, "AES");
+        }
+        catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+        // Throw run time exception if key is equal to null
+        if (sKey == null)
+        {
+            throw new RuntimeException("Secret Key Error");
+        }
 
         return sKey;
     }

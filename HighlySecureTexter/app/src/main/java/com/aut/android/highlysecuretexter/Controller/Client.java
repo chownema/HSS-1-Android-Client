@@ -57,6 +57,8 @@ public class Client implements Serializable {
         return contacts;
     }
 
+    public void addContact(String number, ) { contacts.put( ) }
+
     public SecretKey getEphemeralKey() {
         return ephemeralKey;
     }

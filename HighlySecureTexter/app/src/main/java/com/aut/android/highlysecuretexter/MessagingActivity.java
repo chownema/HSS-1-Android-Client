@@ -46,12 +46,18 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
+
         setContentView(R.layout.activity_messaging);
 
         // Add Recipient Number to the title
         i = getIntent();
         setTitle(i.getStringExtra("number"));
         client = (Client) i.getSerializableExtra("client");
+
+        // Get Contacts Public key
+        client.
 
         // TODO: Need to Send request to contact to initiate conversation
 
@@ -71,8 +77,10 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
         // Set Layout to Be pushed up when Soft Keyboard is used
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
+
         /** Init Debug Variables **/
 //        Utility.initDebugValues();
+
 
     }
 
