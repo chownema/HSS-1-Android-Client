@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -20,9 +21,13 @@ import android.widget.Toast;
 
 import com.aut.android.highlysecuretexter.Controller.Client;
 import com.aut.android.highlysecuretexter.Controller.Crypto;
+import com.aut.android.highlysecuretexter.Controller.Network;
 import com.aut.android.highlysecuretexter.Controller.Utility;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
+
+import javax.crypto.SecretKey;
 
 public class MessagingActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -42,22 +47,41 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
     // Client Object
     Client client;
 
+    // Contact Var
+    PublicKey contactPubkey = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
-
         setContentView(R.layout.activity_messaging);
 
-        // Add Recipient Number to the title
+
         i = getIntent();
-        setTitle(i.getStringExtra("number"));
+        final String contactNumber = i.getStringExtra("number");
+
+        setTitle(contactNumber);
         client = (Client) i.getSerializableExtra("client");
 
-        // Get Contacts Public key
-        client.
+        // TODO: Request Public key of contact
+        new AsyncTask<Void, Void, Void>()
+        {
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                // Get Contacts Public key
+                contactPubkey = Network.getContactPublicKey(contactNumber, client);
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                // Add Contact information and store it in the client object
+                client.addContactInformation(i.getStringExtra("number"), contactPubkey);
+                super.onPostExecute(aVoid);
+            }
+        }.execute();
+
 
         // TODO: Need to Send request to contact to initiate conversation
 
@@ -104,7 +128,7 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
             SmsManager sms = SmsManager.getDefault();
             String ptMsg = inputMessage.getText().toString();
             // TODO: add secret key from contacts hash map
-            String msg = Crypto.encryptAndEncodeMessage(ptMsg, null);
+            String msg = Crypto.encryptAndEncodeAESMessage(ptMsg, null);
             ArrayList<String> parts = sms.divideMessage(msg);
             sms.sendMultipartTextMessage(phoneNum, null, parts, null, null);
             Toast.makeText(getApplicationContext(), "SMS sent " + msg, Toast.LENGTH_LONG).show();
@@ -184,7 +208,7 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
                             ((byte[]) pdus[i]);
                     String receivedString = message.getDisplayMessageBody();
                     // TODO: add secret key from contacts hash map
-                    String decryptedMessage = Crypto.decodeAndDecryptMessage(receivedString, null);
+                    String decryptedMessage = Crypto.decodeAndDecrypAESMessage(receivedString, null);
                     stringBuilder.append(decryptedMessage);
                 }
 
@@ -200,6 +224,12 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
             if(bundle !=null)
                 updateUI(stringBuilder.toString(), false);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(receivedBroadcastReceiver);
+        super.onDestroy();
     }
 }
 

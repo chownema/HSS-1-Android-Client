@@ -10,6 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
@@ -116,24 +117,61 @@ public class Network {
         return contactData.split(", ");
     }
 
-    public static SecretKey getContactPublicKey(String contactNumber, String clientNumber) {
+    /**
+     * Gets a Public Key from the PKA
+     * @param contactNumber
+     * @param client
+     * @return Public Key of a Contact
+     */
+    public static PublicKey getContactPublicKey(String contactNumber, Client client) {
 
-        SecretKey contactSKey = null;
+        PublicKey contactPKey = null;
 
         try {
-            String cipherString = "";
-            String contactPublicKey = doPost("publickey/"+clientNumber+"/"+cipherString);
-            contactSKey = Crypto.generateSecretKey(contactPublicKey);
+            String cipherString;
+            // TODO: Add nonce to the cipher String
+            // TODO: Add double RSA
+            // Create Cipher String with contact number and Clients Private Key
+            byte[] contactNumberBytes = contactNumber.getBytes();
+            PrivateKey clientPrivateKey = client.getPrivateKey();
+            cipherString = new String(Crypto.encryptRSA(clientPrivateKey,contactNumberBytes));
+
+            String contactPublicKey = doPost("publickey/"+client.getMobile()+"/"+cipherString);
+            contactPublicKey = new String(Utility.decodeFromBase64(contactPublicKey));
+
+            // Generate public key object from public key String
+            contactPKey  = Crypto.generatePublicKey(contactPublicKey);
         }
         catch (Exception e){
             Log.e("Error", e.toString());
         }
 
-        if (contactSKey == null) {
+        if (contactPKey == null) {
             throw new RuntimeException("Public Key Request ERROR");
         }
 
 
-        return contactSKey;
+        return contactPKey;
     }
+
+//    public static SecretKey getContactPublicKey(String contactNumber, String clientNumber) {
+//
+//        SecretKey contactSKey = null;
+//
+//        try {
+//            String cipherString = "";
+//            String contactPublicKey = doPost("publickey/"+clientNumber+"/"+cipherString);
+//            contactSKey = Crypto.generateSecretKey(contactPublicKey);
+//        }
+//        catch (Exception e){
+//            Log.e("Error", e.toString());
+//        }
+//
+//        if (contactSKey == null) {
+//            throw new RuntimeException("Public Key Request ERROR");
+//        }
+//
+//
+//        return contactSKey;
+//    }
 }
