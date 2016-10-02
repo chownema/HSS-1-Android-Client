@@ -99,7 +99,7 @@ public class Crypto {
      */
     public static String encryptAndEncodeAESMessage(String message, SecretKey secretKey)
     {
-        assert(secretKey != null || message != null);
+        String errorMessage = null;
         try
         {  // create a cipher
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -114,19 +114,18 @@ public class Crypto {
                     Base64.NO_WRAP);
             return encodedString;
         }
-        catch (NoSuchAlgorithmException e)
-            {
-                e.printStackTrace();
+        catch (NoSuchAlgorithmException e) {
+                errorMessage = "Encryption algorithm not available: " + e;
             } catch (InvalidKeyException e) {
-                e.printStackTrace();
+                errorMessage = "Invalid Key: " + e;
             } catch (NoSuchPaddingException e) {
-                e.printStackTrace();
+                errorMessage = "Padding scheme not available: " + e;
             } catch (BadPaddingException e) {
-                e.printStackTrace();
+                errorMessage = "Bad Padding : " + e;
             } catch (IllegalBlockSizeException e) {
-                e.printStackTrace();
+                errorMessage = "Illegal Block size: " + e;
             } catch (InvalidAlgorithmParameterException e) {
-                e.printStackTrace();
+                errorMessage = "Invalid Algorithm: " + e;
             }
         return message;
     }
@@ -144,7 +143,6 @@ public class Crypto {
     public static String decodeAndDecrypAESMessage(String encodedmessage, SecretKey secretKey)
     {
         String errorMessage = null;
-        assert(secretKey != null || encodedmessage != null);
         // base 64 decode the Cipher text as a byte[]
         byte[] ciphertext = Base64.decode(encodedmessage, Base64.NO_WRAP);
         try
@@ -229,7 +227,6 @@ public class Crypto {
         {
             throw new RuntimeException("Public Key Generation Error");
         }
-
         return pKey;
     }
 

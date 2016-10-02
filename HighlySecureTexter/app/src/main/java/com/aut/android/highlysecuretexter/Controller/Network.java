@@ -134,7 +134,7 @@ public class Network {
             // Create Cipher String with contact number and Clients Private Key
             byte[] contactNumberBytes = contactNumber.getBytes();
             PrivateKey clientPrivateKey = client.getPrivateKey();
-            cipherString = new String(Crypto.encryptRSA(clientPrivateKey,contactNumberBytes));
+            cipherString = Utility.encodeToBase64(Crypto.encryptRSA(clientPrivateKey,contactNumberBytes));
 
             String contactPublicKey = doPost("publickey/"+client.getMobile()+"/"+cipherString);
             contactPublicKey = new String(Utility.decodeFromBase64(contactPublicKey));
