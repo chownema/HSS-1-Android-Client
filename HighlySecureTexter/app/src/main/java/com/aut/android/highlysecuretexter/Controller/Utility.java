@@ -48,67 +48,6 @@ import static javax.crypto.Cipher.ENCRYPT_MODE;
 
 public class Utility {
 
-//
-//    // Aes Encryption
-//    private static IvParameterSpec initVector;
-//    private static byte[] ivBytes = { 1, -2, 3, -4, 5, -6, 7, -8, 9,
-//            -10, 11, -12, 13, -14, 15, -16 }; // random array of 16 bytes
-//    private static SecretKey secretKey;
-//
-//    // Debug variables
-//    public static PrivateKey privateKeyB = null;
-//    public static PublicKey publicKeyB = null;
-//
-//    /**
-//     * Debugging Functions
-//     */
-//
-//
-//    public static void initDebugValues()
-//    {
-//        // Initialize debug values
-//
-//        // Encrypted Messaging test
-//        // Init RSA messaging variables
-//        initMessagingEncryption();
-//        // Create 2 local key pairs for messaging
-//        generateDebugKeys();
-//        generateKeys();
-//    }
-//
-//    public static void generateDebugKeys() {
-//        try {
-//            // Generate key pair for B
-//            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-//            kpg.initialize(2048);
-//            KeyPair keyPair = kpg.generateKeyPair();
-//            publicKeyB = keyPair.getPublic();
-//            privateKeyB = keyPair.getPrivate();
-//        } catch (NoSuchAlgorithmException ex) {
-//            Log.e("Error", ex.toString());
-//        }
-//    }
-//
-//    /**
-//     * Encryption Functions
-//     */
-//
-//    public static void initMessagingEncryption()
-//    {
-//        // Initialize messaging values
-//
-//        // init iv for AES cipher
-//        initVector = new IvParameterSpec(ivBytes);
-//
-//    }
-//
-//
-
-//
-//
-//
-//
-//
 
     public static byte[] decodeFromBase64(String cipher) {
         // HTML decode from transport
