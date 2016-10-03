@@ -128,20 +128,21 @@ public class Network {
         PublicKey contactPKey = null;
 
         try {
+            String clientMobile = client.getMobile();
             String cipherString;
-            // TODO: Add nonce to the cipher String
-            // TODO: Add double RSA
             // Create Cipher String with contact number and Clients Private Key
             Log.e("number passed", contactNumber);
             byte[] contactNumberBytes = contactNumber.getBytes();
+            // Get Client Private Key
             PrivateKey clientPrivateKey = client.getPrivateKey();
             byte[] cipherBytes  = Crypto.encryptRSA(clientPrivateKey,contactNumberBytes);
             cipherString = Utility.encodeToBase64(cipherBytes);
 
-            //
-            Utility.decodeFromBase64(cipherString);
+            // Generate validation package and base 64 encode it
+            String validationString = Crypto.encryptValidationPackage(clientPrivateKey, clientMobile);
+            validationString = Utility.encodeToBase64(validationString.getBytes());
 
-            String contactPublicKey = doPost("publickey/"+client.getMobile()+"/Pooty/"+cipherString);
+            String contactPublicKey = doPost("publickey/"+clientMobile+"/"+validationString+"/"+cipherString);
             contactPublicKey = new String(Utility.decodeFromBase64(contactPublicKey));
 
             // Generate public key object from public key String
