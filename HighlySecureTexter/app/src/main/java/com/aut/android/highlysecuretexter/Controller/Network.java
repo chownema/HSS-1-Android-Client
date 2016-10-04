@@ -11,6 +11,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
@@ -20,7 +21,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class Network {
 
-    public final static String endpoint = "http://172.28.56.205:8080/PKAServer/webresources/pka/";
+    public final static String endpoint = "http://172.28.41.238:8080/PKAServer/webresources/pka/";
     public static PublicKey pkaPublicKey = null;
 
     public static String doPost(String restMethod) {
@@ -62,7 +63,7 @@ public class Network {
     }
 
     public static void connectToPKA(Client client) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        // get pka key
+        // get PKA Key
         String response = doPost("pkakey");
         byte[] pkaPublicKeyBytes = Utility.decodeFromBase64(response);
         pkaPublicKey = KeyFactory.getInstance("RSA").generatePublic
@@ -80,7 +81,7 @@ public class Network {
         String bytesEncoded = Utility.encodeToBase64(encryptedConnPackage);
 
         // Send request to join to PKA
-        response = doPost("join/" + client.getMobile() + "/" + bytesEncoded);
+        response = doPost("join/" + client.getMobile() + "/Pooty/" + bytesEncoded);
 
         // Base64 decode
         // Decrypt response with pka pub key
@@ -106,7 +107,11 @@ public class Network {
         String encoded = Utility.encodeToBase64(outer);
 
         // Request up to date contacts
+<<<<<<< HEAD
         String response = doPost("numbers/" + client.getMobile() + "/" + client.getValidationToken() + "/" + encoded);
+=======
+        String response = doPost("numbers/" + client.getMobile() + "/Pooty/" + encoded);
+>>>>>>> master
 
         byte[] decoded = Utility.decodeFromBase64(response);
         outer = Crypto.decryptRSA(client.getPrivateKey(), decoded);
@@ -116,4 +121,67 @@ public class Network {
 
         return contactData.split(", ");
     }
+
+    /**
+     * Gets a Public Key from the PKA
+     * @param contactNumber
+     * @param client
+     * @return Public Key of a Contact
+     */
+    public static PublicKey getContactPublicKey(String contactNumber, Client client) {
+
+        PublicKey contactPKey = null;
+
+        try {
+            String cipherString;
+            // TODO: Add nonce to the cipher String
+            // TODO: Add double RSA
+            // Create Cipher String with contact number and Clients Private Key
+            Log.e("number passed", contactNumber);
+            byte[] contactNumberBytes = contactNumber.getBytes();
+            PrivateKey clientPrivateKey = client.getPrivateKey();
+            byte[] cipherBytes  = Crypto.encryptRSA(clientPrivateKey,contactNumberBytes);
+            cipherString = Utility.encodeToBase64(cipherBytes);
+
+            //
+            Utility.decodeFromBase64(cipherString);
+
+            String contactPublicKey = doPost("publickey/"+client.getMobile()+"/Pooty/"+cipherString);
+            contactPublicKey = new String(Utility.decodeFromBase64(contactPublicKey));
+
+            // Generate public key object from public key String
+            contactPKey  = Crypto.generatePublicKey(contactPublicKey);
+        }
+        catch (Exception e){
+            Log.e("Error", e.toString());
+        }
+
+        if (contactPKey == null) {
+            throw new RuntimeException("Public Key Request ERROR");
+        }
+
+
+        return contactPKey;
+    }
+
+//    public static SecretKey getContactPublicKey(String contactNumber, String clientNumber) {
+//
+//        SecretKey contactSKey = null;
+//
+//        try {
+//            String cipherString = "";
+//            String contactPublicKey = doPost("publickey/"+clientNumber+"/"+cipherString);
+//            contactSKey = Crypto.generateSecretKey(contactPublicKey);
+//        }
+//        catch (Exception e){
+//            Log.e("Error", e.toString());
+//        }
+//
+//        if (contactSKey == null) {
+//            throw new RuntimeException("Public Key Request ERROR");
+//        }
+//
+//
+//        return contactSKey;
+//    }
 }

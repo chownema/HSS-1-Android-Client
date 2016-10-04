@@ -52,17 +52,18 @@ public class ContactsActivity extends AppCompatActivity implements View.OnClickL
         refreshButton = (Button) findViewById(R.id.refresh_contacts_button);
         refreshButton.setOnClickListener(this);
 
-        // Init on click list
-//        contactsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            public void onItemClick(AdapterView<?> parent, View view,
-//                                    int position, long id) {
-//
-//                Toast.makeText(getApplicationContext(), contactsList.get(position) + "CLICKED", Toast.LENGTH_SHORT).show();
-//                Intent myIntent = new Intent(ContactsActivity.this, MessagingActivity.class);
-//                myIntent.putExtra("number", contactsList.get(position)); //Optional parameters
-//                ContactsActivity.this.startActivity(myIntent);
-//            }
-//        });
+//         Init on click list
+        contactsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+
+                Toast.makeText(getApplicationContext(), contactsList.get(position) + "CLICKED", Toast.LENGTH_SHORT).show();
+                Intent myIntent = new Intent(ContactsActivity.this, MessagingActivity.class);
+                myIntent.putExtra("number", contactsList.get(position)); // Number of contact
+                myIntent.putExtra("client", client); // Client object
+                ContactsActivity.this.startActivity(myIntent);
+            }
+        });
     }
 
     @Override

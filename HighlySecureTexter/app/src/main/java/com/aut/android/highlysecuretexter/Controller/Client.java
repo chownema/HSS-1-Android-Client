@@ -59,6 +59,12 @@ public class Client implements Serializable {
         return contacts;
     }
 
+    public void addContactInformation(String number, PublicKey pubkey) {
+        Contact c =  new Contact(number);
+        c.setPublicKey(pubkey);
+        contacts.put(number, c);
+    }
+
     public SecretKey getEphemeralKey() {
         return ephemeralKey;
     }
