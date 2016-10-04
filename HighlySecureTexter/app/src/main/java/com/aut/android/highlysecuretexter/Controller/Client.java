@@ -21,12 +21,14 @@ public class Client implements Serializable {
     private HashMap<String, Contact> contacts;
     private SecretKey ephemeralKey;
     private boolean pkaConnected;
+    private String validationToken;
 
     public Client(String mobile, SecretKey ephemeralKey) {
         this.mobile = mobile;
         this.ephemeralKey = ephemeralKey;
         contacts = new HashMap<>();
         generateRSAKeys();
+        createValidationToken();
     }
 
     private void generateRSAKeys() {
@@ -67,6 +69,10 @@ public class Client implements Serializable {
         return ephemeralKey;
     }
 
+    public String getValidationToken() {
+        return validationToken;
+    }
+
     public boolean isPkaConnected() {
         return pkaConnected;
     }
@@ -78,5 +84,13 @@ public class Client implements Serializable {
 
         SecureRandom sec = new SecureRandom();
         sec.nextBytes(shit);
+    }
+
+    private void createValidationToken() {
+
+        // Encrypt mobile number
+        byte[] encryptedMobile = Crypto.encryptRSA(privateKey, mobile.getBytes());
+        // Encode for transport
+        this.validationToken = Utility.encodeToBase64(encryptedMobile);
     }
 }

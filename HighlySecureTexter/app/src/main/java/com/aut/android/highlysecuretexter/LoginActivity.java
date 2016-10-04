@@ -28,7 +28,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private EditText mobileTextField, passwordTextField;
 
     // Public Strings
-    //public String response;
     private String mobile = "0212556332";
     private Client client;
 
@@ -52,8 +51,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 try
                 {
                     SecretKey ephemeral = Network.getEphemeralKey(mobile);
-                    // Create client and populate ephemeral key
-                    setClient(new Client(mobile, ephemeral));
+
+                    if(ephemeral != null) {
+                        // Create client and populate ephemeral key
+                        setClient(new Client(mobile, ephemeral));
+                    }
                 }
                 catch (Exception e) {e.printStackTrace();}
                 return null;
@@ -63,7 +65,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
 
-                if(client.getEphemeralKey() != null)
+                if(client != null && client.getEphemeralKey() != null)
                     Toast.makeText(getApplicationContext(),
                             "Ephemeral has been received", Toast.LENGTH_SHORT).show();
                 else

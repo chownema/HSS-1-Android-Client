@@ -1,6 +1,7 @@
 package com.aut.android.highlysecuretexter.Controller;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -106,7 +107,11 @@ public class Network {
         String encoded = Utility.encodeToBase64(outer);
 
         // Request up to date contacts
+<<<<<<< HEAD
+        String response = doPost("numbers/" + client.getMobile() + "/" + client.getValidationToken() + "/" + encoded);
+=======
         String response = doPost("numbers/" + client.getMobile() + "/Pooty/" + encoded);
+>>>>>>> master
 
         byte[] decoded = Utility.decodeFromBase64(response);
         outer = Crypto.decryptRSA(client.getPrivateKey(), decoded);
