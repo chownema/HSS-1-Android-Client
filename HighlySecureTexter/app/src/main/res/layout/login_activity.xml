@@ -10,32 +10,20 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.aut.android.highlysecuretexter.LoginActivity">
 
-    <TextView
-        android:text="Password :"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:id="@+id/textView8"
-        android:layout_alignParentStart="true" />
-
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="textPassword"
-        android:ems="10"
-        android:layout_centerVertical="true"
-        android:layout_toEndOf="@+id/textView8"
-        android:id="@+id/password_edit_text"
-        android:hint="Apple123" />
 
     <TextView
-        android:text="Number : "
+        android:text="Secure Texter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/textView4"
-        android:layout_marginTop="46dp"
-        android:layout_below="@+id/connect_button"
-        android:layout_toStartOf="@+id/password_edit_text" />
+        android:id="@+id/textView2"
+        android:textSize="50sp"
+        android:fontFamily="sans-serif"
+        android:lineSpacingExtra="30sp"
+        android:textAlignment="center"
+        android:typeface="sans"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="54dp" />
 
     <Button
         android:text="Connect"
@@ -43,41 +31,33 @@
         android:layout_height="wrap_content"
         android:id="@+id/connect_button"
         style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_alignBaseline="@+id/password_edit_text"
-        android:layout_alignBottom="@+id/password_edit_text"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="185dp" />
+
+    <TextView
+        android:text="Mobile Number:"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView"
+        android:textSize="20sp"
+        android:fontFamily="sans-serif"
+        android:lineSpacingExtra="30sp"
+        android:textAlignment="center"
+        android:typeface="sans"
+        android:layout_marginBottom="29dp"
+        android:layout_above="@+id/phone_edit_text"
+        android:layout_alignStart="@+id/textView2"
+        android:layout_marginStart="16dp" />
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:inputType="phone"
-        android:ems="10"
         android:id="@+id/phone_edit_text"
         android:text="0211245734"
-        android:layout_alignBaseline="@+id/textView4"
-        android:layout_alignBottom="@+id/textView4"
-        android:layout_toEndOf="@+id/textView4" />
-
-    <TextView
-        android:text="ST"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="84dp"
-        android:id="@+id/textView"
+        android:layout_marginBottom="24dp"
         android:layout_above="@+id/connect_button"
-        android:layout_centerHorizontal="true"
-        android:textSize="50sp"
-        android:fontFamily="sans-serif"
-        android:lineSpacingExtra="30sp"
-        android:textAlignment="center"
-        android:typeface="sans" />
-
-    <TextView
-        android:text="Login"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/textView2"
-        android:layout_above="@+id/password_edit_text"
-        android:layout_alignParentStart="true" />
+        android:layout_toEndOf="@+id/connect_button" />
 
 </RelativeLayout>
