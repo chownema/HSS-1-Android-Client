@@ -1,6 +1,7 @@
 package com.aut.android.highlysecuretexter.Controller;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;

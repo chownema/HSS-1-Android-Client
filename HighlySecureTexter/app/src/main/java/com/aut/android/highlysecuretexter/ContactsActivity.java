@@ -39,7 +39,8 @@ public class ContactsActivity extends AppCompatActivity implements View.OnClickL
         // Get client data from previous activity intent
         client = (Client) getIntent().getSerializableExtra("client");
 
-        // TODO: Get active clients
+        // Update contacts from Server
+        //updateContacts();
 
         // Init List view
         contactsListView = (ListView) findViewById(R.id.contacts_list_view);
@@ -69,33 +70,40 @@ public class ContactsActivity extends AppCompatActivity implements View.OnClickL
     public void onClick(View view) {
         if (view == refreshButton)
         {
-
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... voids) {
-                    try
-                    {
-                        // Get contact data from rest endpoint
-                        setContacts(Network.updateContacts(client));
-                    } catch (Exception e) {e.printStackTrace();}
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(Void aVoid) {
-
-                    // Clear list
-                    adapter.clear();
-                    // Insert items
-                    for(int i = 0; i < contacts.length; i++)
-                        adapter.insert(contacts[i], i);
-                    // Notify data changed
-                    adapter.notifyDataSetChanged();
-                    // Notify client of update
-                    Toast.makeText(getApplicationContext(), "Contacts Refreshed", Toast.LENGTH_SHORT).show();
-                }
-            }.execute();
+            updateContacts();
         }
+    }
+
+    private void updateContacts() {
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                try
+                {
+                    // Get contact data from rest endpoint
+                    String[] contactData = Network.updateContacts(client);
+
+                    if(contactData != null) {
+                        setContacts(contactData);
+                    }
+                } catch (Exception e) {e.printStackTrace();}
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+
+                // Clear list
+                adapter.clear();
+                // Insert items
+                for(int i = 0; i < contacts.length; i++)
+                    adapter.insert(contacts[i], i);
+                // Notify data changed
+                adapter.notifyDataSetChanged();
+                // Notify client of update
+                Toast.makeText(getApplicationContext(), "Contacts Refreshed", Toast.LENGTH_SHORT).show();
+            }
+        }.execute();
     }
 
     private void setContacts(String[] temp) {
