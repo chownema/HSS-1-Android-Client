@@ -80,7 +80,7 @@ public class Network {
         String bytesEncoded = Utility.encodeToBase64(encryptedConnPackage);
 
         // Send request to join to PKA
-        response = doPost("join/" + client.getMobile() + "/Pooty/" + bytesEncoded);
+        response = doPost("join/" + client.getMobile() + "/" + bytesEncoded);
 
         // Base64 decode
         // Decrypt response with pka pub key
@@ -106,7 +106,7 @@ public class Network {
         String encoded = Utility.encodeToBase64(outer);
 
         // Request up to date contacts
-        String response = doPost("numbers/" + client.getMobile() + "/Pooty/" + encoded);
+        String response = doPost("numbers/" + client.getMobile() + "/" + encoded);
 
         byte[] decoded = Utility.decodeFromBase64(response);
         outer = Crypto.decryptRSA(client.getPrivateKey(), decoded);
@@ -138,11 +138,7 @@ public class Network {
             byte[] cipherBytes  = Crypto.encryptRSA(clientPrivateKey,contactNumberBytes);
             cipherString = Utility.encodeToBase64(cipherBytes);
 
-            // Generate validation package and base 64 encode it
-            String validationString = Crypto.encryptValidationPackage(clientPrivateKey, clientMobile);
-            validationString = Utility.encodeToBase64(validationString.getBytes());
-
-            String contactPublicKey = doPost("publickey/"+clientMobile+"/"+validationString+"/"+cipherString);
+            String contactPublicKey = doPost("publickey/"+clientMobile+"/"+cipherString);
             contactPublicKey = new String(Utility.decodeFromBase64(contactPublicKey));
 
             // Generate public key object from public key String
