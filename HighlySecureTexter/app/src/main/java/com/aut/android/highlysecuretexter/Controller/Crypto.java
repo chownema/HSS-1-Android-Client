@@ -277,4 +277,21 @@ public class Crypto {
 
         return decrypted;
     }
+
+
+    /**
+     * generates an encrypted validation package mobile number string encrypted with the private key of the client
+     * @param clientPrivateKey
+     * @param mobile
+     * @return validationPackageString
+     */
+    public static String encryptValidationPackage(PrivateKey clientPrivateKey, String mobile) {
+        String validationPackageString = "";
+        // Encrypt Mobile number
+        byte[] encryptedBytes = encryptRSA(clientPrivateKey, mobile.getBytes());
+        // Put into string
+        validationPackageString = new String(encryptedBytes);
+
+        return validationPackageString;
+    }
 }

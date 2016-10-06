@@ -81,7 +81,7 @@ public class Network {
         String bytesEncoded = Utility.encodeToBase64(encryptedConnPackage);
 
         // Send request to join to PKA
-        response = doPost("join/" + client.getMobile() + "/Pooty/" + bytesEncoded);
+        response = doPost("join/" + client.getMobile() + "/" + bytesEncoded);
 
         // Base64 decode
         // Decrypt response with pka pub key
@@ -107,11 +107,7 @@ public class Network {
         String encoded = Utility.encodeToBase64(outer);
 
         // Request up to date contacts
-<<<<<<< HEAD
-        String response = doPost("numbers/" + client.getMobile() + "/" + client.getValidationToken() + "/" + encoded);
-=======
-        String response = doPost("numbers/" + client.getMobile() + "/Pooty/" + encoded);
->>>>>>> master
+        String response = doPost("numbers/" + client.getMobile() + "/" + encoded);
 
         byte[] decoded = Utility.decodeFromBase64(response);
         outer = Crypto.decryptRSA(client.getPrivateKey(), decoded);
@@ -133,20 +129,17 @@ public class Network {
         PublicKey contactPKey = null;
 
         try {
+            String clientMobile = client.getMobile();
             String cipherString;
-            // TODO: Add nonce to the cipher String
-            // TODO: Add double RSA
             // Create Cipher String with contact number and Clients Private Key
             Log.e("number passed", contactNumber);
             byte[] contactNumberBytes = contactNumber.getBytes();
+            // Get Client Private Key
             PrivateKey clientPrivateKey = client.getPrivateKey();
             byte[] cipherBytes  = Crypto.encryptRSA(clientPrivateKey,contactNumberBytes);
             cipherString = Utility.encodeToBase64(cipherBytes);
 
-            //
-            Utility.decodeFromBase64(cipherString);
-
-            String contactPublicKey = doPost("publickey/"+client.getMobile()+"/Pooty/"+cipherString);
+            String contactPublicKey = doPost("publickey/"+clientMobile+"/"+cipherString);
             contactPublicKey = new String(Utility.decodeFromBase64(contactPublicKey));
 
             // Generate public key object from public key String
