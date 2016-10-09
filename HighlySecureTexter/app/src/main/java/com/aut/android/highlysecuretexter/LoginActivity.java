@@ -24,7 +24,7 @@ import javax.crypto.SecretKey;
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
     // Screen elements
-    private Button connectButton;
+    private Button connectButton, requestButton;
     private EditText mobileTextField, passwordTextField;
 
     // Public Strings
@@ -41,6 +41,60 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Set buttons
         connectButton = (Button) findViewById(R.id.connect_button);
         connectButton.setOnClickListener(this);
+        requestButton = (Button) findViewById(R.id.request_button);
+        requestButton.setOnClickListener(this);
+
+        // Get Permissions
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.SEND_SMS}, 1);
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.RECEIVE_SMS}, 1);
+
+//        // Set SMS broadcast receiver
+//        receivedBroadcastReceiver = new SMSBroadcastReceiver();
+//        registerReceiver(receivedBroadcastReceiver,
+//                new IntentFilter("android.provider.Telephony.SMS_RECEIVED"));
+    }
+
+    @Override
+    public void onClick(View view) {
+        // Connect to the server with the encrypted cipher array
+        if (view == connectButton)
+            connect();
+        else if(view == requestButton)
+            requestToJoin();
+    }
+
+    private void connect() {
+
+        Toast.makeText(getApplicationContext(), "Connecting to PKA Server...", Toast.LENGTH_SHORT).show();
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                try
+                {
+                    Network.connectToPKA(client);
+                } catch (Exception e) {e.printStackTrace();}
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                if(client.isPkaConnected()) {
+                    Toast.makeText(getApplicationContext(), "Successfully connected to PKA", Toast.LENGTH_SHORT).show();
+                    Intent myIntent = new Intent(LoginActivity.this, ContactsActivity.class);
+                    myIntent.putExtra("client", client);
+                    startActivity(myIntent);
+                }
+                else
+                    Toast.makeText(getApplicationContext(), "Unable to connect to PKA", Toast.LENGTH_SHORT).show();
+            }
+        }.execute();
+    }
+
+    private void requestToJoin() {
 
         // Get one time password debug
         Toast.makeText(this, "Getting Ephemeral key...", Toast.LENGTH_SHORT).show();
@@ -74,50 +128,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             }
 
         }.execute();
-
-        // Get Permissions
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.SEND_SMS}, 1);
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.RECEIVE_SMS}, 1);
-
-//        // Set SMS broadcast receiver
-//        receivedBroadcastReceiver = new SMSBroadcastReceiver();
-//        registerReceiver(receivedBroadcastReceiver,
-//                new IntentFilter("android.provider.Telephony.SMS_RECEIVED"));
-    }
-
-    @Override
-    public void onClick(View view) {
-        // Connect to the server with the encrypted cipher array
-        if (view == connectButton)
-        {
-            Toast.makeText(getApplicationContext(), "Connecting to PKA Server...", Toast.LENGTH_SHORT).show();
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... voids) {
-                    try
-                    {
-                        Network.connectToPKA(client);
-                    } catch (Exception e) {e.printStackTrace();}
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    if(client.isPkaConnected()) {
-                        Toast.makeText(getApplicationContext(), "Successfully connected to PKA", Toast.LENGTH_SHORT).show();
-                        Intent myIntent = new Intent(LoginActivity.this, ContactsActivity.class);
-                        myIntent.putExtra("client", client);
-                        startActivity(myIntent);
-                    }
-                    else
-                        Toast.makeText(getApplicationContext(), "Unable to connect to PKA", Toast.LENGTH_SHORT).show();
-                }
-            }.execute();
-        }
     }
 
     private void setClient(Client temp) {
