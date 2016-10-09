@@ -14,6 +14,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
@@ -293,5 +294,129 @@ public class Crypto {
         validationPackageString = new String(encryptedBytes);
 
         return validationPackageString;
+    }
+
+
+    public static String doubleEncryptData(byte[] data, Key recipientKey) {
+
+        ArrayList<byte[]> chunks = new ArrayList<>();
+
+        // Segment data to encrypt into 100 byte chunks (or remainder)
+        for(int i = 0; i < data.length;) {
+
+            int difference = data.length - i;
+
+            if(difference >= 100) {
+                byte[] chunk = new byte[100];
+
+                for(int x = 0; x < 100; x++)
+                    chunk[x] = data[i++];
+
+                chunks.add(chunk);
+            }
+            else {
+                byte[] chunk = new byte[difference];
+
+                for(int x = 0; x < difference; x++)
+                    chunk[x] = data[i++];
+
+                chunks.add(chunk);
+            }
+        }
+
+        byte[] encryptedChunk = new byte[chunks.size() * 256];
+        int counter = 0;
+
+        // Encrypt chunks
+        for(int i = 0; i < chunks.size(); i++) {
+            try {
+                // Get chunk i
+                byte[] chunk = chunks.get(i);
+                // Encrypt inner layer with pka private key
+                Cipher rsaCipher = Cipher.getInstance("RSA/ECB/NoPadding");
+                rsaCipher.init(Cipher.ENCRYPT_MODE, recipientKey);
+                byte[] inner = rsaCipher.doFinal(chunk);
+                // Encrypt outer layer with recipient public key
+                Cipher rsaCipher2 = Cipher.getInstance("RSA/ECB/NoPadding");
+                rsaCipher2.init(Cipher.ENCRYPT_MODE, Network.pkaPublicKey);
+                byte[] outer = rsaCipher2.doFinal(inner);
+
+                for(int x = 0; x < outer.length; x++)
+                    encryptedChunk[counter++] = outer[x];
+            } catch (NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidKeyException ex) {
+                System.out.println("Unable to encrypt data package for transport");
+            }
+        }
+
+        // Build up contents for transport response of HTTP post
+        // "actual bytes length ||| transportation bytes length ||| byte data"
+        StringBuilder sb = new StringBuilder();
+        sb.append(data.length).append("|||");
+        sb.append(encryptedChunk.length).append("|||");
+        sb.append(Utility.encodeToBase64(encryptedChunk));
+
+        return sb.toString();
+    }
+
+    public static byte[] doubleDecryptData(String data, Key senderKey) {
+
+        byte[] decodedData = Utility.decodeFromBase64(data);
+        String[] dataSplit = new String(decodedData).split("\\|\\|\\|");
+        int actualDataLength = Integer.parseInt(dataSplit[0]);
+        int paddedDataLength = Integer.parseInt(dataSplit[1]);
+        byte[] decoded = Utility.decodeFromBase64(dataSplit[2]);
+
+        ArrayList<byte[]> encryptedChunks = new ArrayList<>();
+
+        // Break decoded data into padded chunks
+        for(int i = 0; i < paddedDataLength / 256; i++) {
+            byte[] chunk = new byte[256];
+
+            int upper = (256 * i) + 256;
+
+            for(int y = upper - 256, counter = 0; y < upper; y++)
+                chunk[counter++] = decoded[y];
+
+            encryptedChunks.add(chunk);
+        }
+
+        // Decrypt chunks
+        for(int i = 0; i < encryptedChunks.size(); i++) {
+            try {
+                // Get chunk
+                byte[] chunk = encryptedChunks.get(i);
+                // Decrypt outer layer with pka private key
+                Cipher rsaCipher = Cipher.getInstance("RSA/ECB/NoPadding");
+                rsaCipher.init(Cipher.DECRYPT_MODE, Network.pkaPublicKey);
+                byte[] outer = rsaCipher.doFinal(chunk);
+                // Decrypt inner layer with recipient public key
+                Cipher rsaCipher2 = Cipher.getInstance("RSA/ECB/NoPadding");
+                rsaCipher2.init(Cipher.DECRYPT_MODE, senderKey);
+                byte[] inner = rsaCipher2.doFinal(outer);
+
+                int dataLength = (actualDataLength >= 100) ? 100 : actualDataLength;
+                byte[] actualData = new byte[dataLength];
+
+                // Get actual data from chunk
+                for(int x = inner.length - dataLength, counter = 0; x < inner.length; x--)
+                    actualData[counter] = inner[x];
+
+                // Replace chunk
+                encryptedChunks.set(i, actualData);
+            } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException ex) {
+                System.out.println("Unable to decrypt data package from transport");
+            }
+        }
+
+        // Concatenate chunks into one byte array
+        byte[] dataChunk = new byte[actualDataLength];
+        int counter = 0;
+
+        for(byte[] chunk : encryptedChunks) {
+            for(byte b : chunk)
+                dataChunk[counter++] = b;
+        }
+
+        return dataChunk;
     }
 }

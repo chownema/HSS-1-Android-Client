@@ -6,6 +6,7 @@ import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -21,10 +22,10 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class Network {
 
-    public final static String endpoint = "http://172.28.41.238:8080/PKAServer/webresources/pka/";
+    public final static String endpoint = "http://172.28.56.205:8080/PKAServer/webresources/pka/";
     public static PublicKey pkaPublicKey = null;
 
-    public static String doPost(String restMethod) {
+    public static String doPost(String restMethod, String outgoingData) {
 
         String data = null;
 
@@ -33,6 +34,16 @@ public class Network {
             URL url = new URL(endpoint + restMethod);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
+
+            // FOR POSTING DATA OUT - start
+            if(outgoingData != null) {
+                conn.setDoOutput(true);
+                OutputStream outputStream = conn.getOutputStream();
+                outputStream.write(outgoingData.getBytes());
+                outputStream.flush();
+                outputStream.close();
+            }
+            // FOR POSTING DATA OUT - end
 
             if (conn.getResponseCode() != 200) {
                 Log.e("Error Posting", "Failed : HTTP error code : "
@@ -64,7 +75,7 @@ public class Network {
 
     public static void connectToPKA(Client client) throws NoSuchAlgorithmException, InvalidKeySpecException {
         // get PKA Key
-        String response = doPost("pkakey");
+        String response = doPost("pkakey", null);
         byte[] pkaPublicKeyBytes = Utility.decodeFromBase64(response);
         pkaPublicKey = KeyFactory.getInstance("RSA").generatePublic
                 (new X509EncodedKeySpec(pkaPublicKeyBytes));
@@ -80,8 +91,10 @@ public class Network {
         // Base64 encode encrypted package into a string
         String bytesEncoded = Utility.encodeToBase64(encryptedConnPackage);
 
+        String keyEncoded = Utility.encodeToBase64(client.getPublicKey().getEncoded());
+
         // Send request to join to PKA
-        response = doPost("join/" + client.getMobile() + "/" + bytesEncoded);
+        response = doPost("join/" + client.getMobile() + "/" + bytesEncoded, keyEncoded);
 
         // Base64 decode
         // Decrypt response with pka pub key
@@ -95,25 +108,23 @@ public class Network {
 
     public static SecretKey getEphemeralKey(String mobile) {
 
-        String response = doPost("request/" + mobile);
+        String response = doPost("request/" + mobile, null);
         byte[] keyData = Utility.decodeFromBase64(response);
         return new SecretKeySpec(keyData, "AES");
     }
 
     public static String[] updateContacts(Client client) {
 
-        //byte[] inner = Crypto.encryptRSA(client.getPrivateKey(), client.getMobile().getBytes());
-        byte[] outer = Crypto.encryptRSA(pkaPublicKey, client.getMobile().getBytes());
-        String encoded = Utility.encodeToBase64(outer);
+        String request = Crypto.doubleEncryptData(client.getMobile().getBytes(), client.getPrivateKey());
+        String encoded = Utility.encodeToBase64(request.getBytes());
 
         // Request up to date contacts
-        String response = doPost("numbers/" + client.getMobile() + "/" + encoded);
+        String response = doPost("numbers/" + client.getMobile() + "/" + encoded, null);
 
         byte[] decoded = Utility.decodeFromBase64(response);
-        outer = Crypto.decryptRSA(client.getPrivateKey(), decoded);
-        //inner = Crypto.decryptRSA(pkaPublicKey, outer);
+        byte[] responseData = Crypto.doubleDecryptData(decoded, client.getPrivateKey());
 
-        String contactData = new String(outer);
+        String contactData = new String(responseData);
 
         return contactData.split(", ");
     }
@@ -139,7 +150,7 @@ public class Network {
             byte[] cipherBytes  = Crypto.encryptRSA(clientPrivateKey,contactNumberBytes);
             cipherString = Utility.encodeToBase64(cipherBytes);
 
-            String contactPublicKey = doPost("publickey/"+clientMobile+"/"+cipherString);
+            String contactPublicKey = doPost("publickey/"+clientMobile+"/"+cipherString, null);
             contactPublicKey = new String(Utility.decodeFromBase64(contactPublicKey));
 
             // Generate public key object from public key String
