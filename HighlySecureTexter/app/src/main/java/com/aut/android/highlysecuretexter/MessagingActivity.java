@@ -10,6 +10,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -48,8 +49,7 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
     Client client;
 
     // Contact Var
-    PublicKey contactPubkey = null;
-
+    private static PublicKey contactPubkey = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,16 +69,27 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
 
             @Override
             protected Void doInBackground(Void... voids) {
-                // Get Contacts Public key
-                contactPubkey = Network.getContactPublicKey(contactNumber, client);
+
+                try {
+                    // Get Contacts Public key
+                    contactPubkey = Network.getContactPublicKey(contactNumber, client);
+                }
+                catch (Exception ex) {
+
+                }
                 return null;
             }
 
             @Override
             protected void onPostExecute(Void aVoid) {
                 // Add Contact information and store it in the client object
-                client.addContactInformation(i.getStringExtra("number"), contactPubkey);
-                super.onPostExecute(aVoid);
+                try {
+                    String number = i.getStringExtra("number");
+                    client.addContactInformation(number, contactPubkey);
+                }
+                catch (Exception ex) {
+                    Log.e("Busted", ex.getMessage());
+                }
             }
         }.execute();
 
