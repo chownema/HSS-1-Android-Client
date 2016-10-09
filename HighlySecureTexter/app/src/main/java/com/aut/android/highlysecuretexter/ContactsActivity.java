@@ -21,7 +21,7 @@ import java.util.ArrayList;
 public class ContactsActivity extends AppCompatActivity implements View.OnClickListener {
 
     private Client client;
-    private String[] contacts = null;
+    private static String[] contacts = null;
     private Button refreshButton;
     private ListView contactsListView;
     private ArrayAdapter<String> adapter;
@@ -69,9 +69,7 @@ public class ContactsActivity extends AppCompatActivity implements View.OnClickL
     @Override
     public void onClick(View view) {
         if (view == refreshButton)
-        {
             updateContacts();
-        }
     }
 
     private void updateContacts() {
@@ -84,7 +82,7 @@ public class ContactsActivity extends AppCompatActivity implements View.OnClickL
                     String[] contactData = Network.updateContacts(client);
 
                     if(contactData != null) {
-                        setContacts(contactData);
+                        contacts = contactData;
                     }
                 } catch (Exception e) {e.printStackTrace();}
                 return null;
@@ -93,20 +91,18 @@ public class ContactsActivity extends AppCompatActivity implements View.OnClickL
             @Override
             protected void onPostExecute(Void aVoid) {
 
-                // Clear list
-                adapter.clear();
-                // Insert items
-                for(int i = 0; i < contacts.length; i++)
-                    adapter.insert(contacts[i], i);
-                // Notify data changed
-                adapter.notifyDataSetChanged();
-                // Notify client of update
-                Toast.makeText(getApplicationContext(), "Contacts Refreshed", Toast.LENGTH_SHORT).show();
+                if(contacts != null) {
+                    // Clear list
+                    adapter.clear();
+                    // Insert items
+                    for(int i = 0; i < contacts.length; i++)
+                        adapter.insert(contacts[i], i);
+                    // Notify data changed
+                    adapter.notifyDataSetChanged();
+                    // Notify client of update
+                    Toast.makeText(getApplicationContext(), "Contacts Refreshed", Toast.LENGTH_SHORT).show();
+                }
             }
         }.execute();
-    }
-
-    private void setContacts(String[] temp) {
-        this.contacts = temp;
     }
 }

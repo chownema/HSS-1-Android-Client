@@ -358,7 +358,7 @@ public class Crypto {
         return sb.toString();
     }
 
-    public static byte[] doubleDecryptData(String data, Key senderKey) {
+    public static byte[] doubleDecryptData(String data, Key senderKey, Key recipientKey) {
 
         byte[] decodedData = Utility.decodeFromBase64(data);
         String[] dataSplit = new String(decodedData).split("\\|\\|\\|");
@@ -387,7 +387,7 @@ public class Crypto {
                 byte[] chunk = encryptedChunks.get(i);
                 // Decrypt outer layer with pka private key
                 Cipher rsaCipher = Cipher.getInstance("RSA/ECB/NoPadding");
-                rsaCipher.init(Cipher.DECRYPT_MODE, Network.pkaPublicKey);
+                rsaCipher.init(Cipher.DECRYPT_MODE, recipientKey);
                 byte[] outer = rsaCipher.doFinal(chunk);
                 // Decrypt inner layer with recipient public key
                 Cipher rsaCipher2 = Cipher.getInstance("RSA/ECB/NoPadding");
@@ -398,8 +398,8 @@ public class Crypto {
                 byte[] actualData = new byte[dataLength];
 
                 // Get actual data from chunk
-                for(int x = inner.length - dataLength, counter = 0; x < inner.length; x--)
-                    actualData[counter] = inner[x];
+                for(int x = inner.length - dataLength, counter = 0; x < inner.length;)
+                    actualData[counter++] = inner[x++];
 
                 // Replace chunk
                 encryptedChunks.set(i, actualData);
