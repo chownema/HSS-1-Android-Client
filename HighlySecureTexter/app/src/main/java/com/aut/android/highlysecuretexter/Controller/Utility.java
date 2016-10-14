@@ -26,6 +26,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
@@ -51,7 +52,7 @@ public class Utility {
 
     public static byte[] decodeFromBase64(String cipher) {
         // HTML decode from transport
-        cipher = cipher.replace("%2B", "+").replace("%2F", "/").replace("%3D", "=");
+        cipher = cipher.replace("%2B", "+").replace("%2F", "/").replace("%3D", "=").replace("%7C", "|");
         // Base64 decode
         return Base64.decode(cipher, Base64.NO_WRAP);
     }
@@ -60,6 +61,6 @@ public class Utility {
         // Encode bytes into base64
         String encodedData = Base64.encodeToString(data, Base64.NO_WRAP);
         // HTML encode for transport
-        return encodedData.replace("+", "%2B").replace("/", "%2F").replace("=", "%3D");
+        return encodedData.replace("+", "%2B").replace("/", "%2F").replace("=", "%3D").replace("|", "%7C");
     }
 }

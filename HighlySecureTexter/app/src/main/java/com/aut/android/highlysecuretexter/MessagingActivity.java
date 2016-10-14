@@ -11,6 +11,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -65,6 +66,9 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
 
         i = getIntent();
         cNumber = i.getStringExtra("number");
+        // DEBUG
+        cNumber = "0211245734";
+
         final String contactNumber = cNumber;
 
         setTitle(contactNumber);
@@ -73,10 +77,15 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
         // TODO: Request Public key of contact
         // TODO: Generate secret Key and store in contact object
 
-        //DEBUG init secret key for debug
+        // DEBUG Set Key pair
+        client = new Client("0211245734", null);
+        client.generateRSAKeys();
 
-        sKey = Crypto.generateSecretKey(Utility.encodeToBase64(
-                client.getPublicKey().toString().getBytes()));
+
+        // DEBUG init secret key for debug
+        sKey = Crypto.generateSecretKey(client.getPublicKey());
+//        sKey = Crypto.generateSecretKey(Utility.encodeToBase64(
+//                client.getPublicKey().toString().getBytes()));
 
         // Create new Contact object and setup session key
         Contact c = new Contact(contactNumber);
@@ -143,6 +152,7 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
     protected void sendSMSMessage()
     {
         String phoneNum = i.getStringExtra("number");
+        phoneNum = cNumber;
         try {
             // Break message into parts and send it
             SmsManager sms = SmsManager.getDefault();
@@ -154,6 +164,7 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
 
             // Send encrypted message
             String msg = Crypto.encryptAndEncodeAESMessage(ptMsg, sessionKey, client.getPrivateKey());
+            Log.e("message", msg);
             ArrayList<String> parts = sms.divideMessage(msg);
             sms.sendMultipartTextMessage(phoneNum, null, parts, null, null);
             Toast.makeText(getApplicationContext(), "SMS sent " + msg, Toast.LENGTH_LONG).show();
@@ -164,6 +175,7 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
         {
             Toast.makeText(getApplicationContext(),
                     "SMS failed, please try again.", Toast.LENGTH_LONG).show();
+            Log.e("Failed to send SMS", e.toString());
         }
 
     }

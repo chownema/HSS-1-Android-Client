@@ -31,7 +31,8 @@ public class Client implements Serializable {
         createValidationToken();
     }
 
-    private void generateRSAKeys() {
+    // TODO: SET back to Private used for debugging
+    public void generateRSAKeys() {
         try {
             KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
             kpg.initialize(2048);

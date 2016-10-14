@@ -6,6 +6,7 @@ import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -22,6 +23,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class Network {
 
     public final static String endpoint = "http://192.168.0.1:8080/PKAServer/webresources/pka/";
+    //public final static String endpoint = "http://10.0.2.2:8080/PKAServer/webresources/pka/";
     public static PublicKey pkaPublicKey = null;
 
     public static String doPost(String restMethod) {
@@ -102,18 +104,15 @@ public class Network {
 
     public static String[] updateContacts(Client client) {
 
-        //byte[] inner = Crypto.encryptRSA(client.getPrivateKey(), client.getMobile().getBytes());
-        byte[] outer = Crypto.encryptRSA(pkaPublicKey, client.getMobile().getBytes());
-        String encoded = Utility.encodeToBase64(outer);
+        String request = Crypto.doubleEncryptData(client.getMobile().getBytes(), client.getPrivateKey());
+        String encoded = Utility.encodeToBase64(request.getBytes());
 
         // Request up to date contacts
         String response = doPost("numbers/" + client.getMobile() + "/" + encoded);
 
-        byte[] decoded = Utility.decodeFromBase64(response);
-        outer = Crypto.decryptRSA(client.getPrivateKey(), decoded);
-        //inner = Crypto.decryptRSA(pkaPublicKey, outer);
+        byte[] responseData = Crypto.doubleDecryptData(response, Network.pkaPublicKey, client.getPrivateKey());
 
-        String contactData = new String(outer);
+        String contactData = new String(responseData);
 
         return contactData.split(", ");
     }
