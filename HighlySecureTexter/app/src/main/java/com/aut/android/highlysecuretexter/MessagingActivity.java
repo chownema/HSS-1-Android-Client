@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.CrossProcessCursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -20,6 +21,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.aut.android.highlysecuretexter.Controller.Client;
+import com.aut.android.highlysecuretexter.Controller.Contact;
 import com.aut.android.highlysecuretexter.Controller.Crypto;
 import com.aut.android.highlysecuretexter.Controller.Network;
 import com.aut.android.highlysecuretexter.Controller.Utility;
@@ -45,11 +47,15 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
     boolean mIsReceiverRegistered = false;
 
     // Client Object
-    Client client;
+    static Client client;
 
     // Contact Var
     PublicKey contactPubkey = null;
 
+    public static String cNumber = "";
+
+    // DEBUG value
+    SecretKey sKey = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,29 +64,43 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
 
 
         i = getIntent();
-        final String contactNumber = i.getStringExtra("number");
+        cNumber = i.getStringExtra("number");
+        final String contactNumber = cNumber;
 
         setTitle(contactNumber);
         client = (Client) i.getSerializableExtra("client");
 
         // TODO: Request Public key of contact
-        new AsyncTask<Void, Void, Void>()
-        {
+        // TODO: Generate secret Key and store in contact object
 
-            @Override
-            protected Void doInBackground(Void... voids) {
-                // Get Contacts Public key
-                contactPubkey = Network.getContactPublicKey(contactNumber, client);
-                return null;
-            }
+        //DEBUG init secret key for debug
 
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                // Add Contact information and store it in the client object
-                client.addContactInformation(i.getStringExtra("number"), contactPubkey);
-                super.onPostExecute(aVoid);
-            }
-        }.execute();
+        sKey = Crypto.generateSecretKey(Utility.encodeToBase64(
+                client.getPublicKey().toString().getBytes()));
+
+        // Create new Contact object and setup session key
+        Contact c = new Contact(contactNumber);
+        c.setSessionKey(sKey);
+        // Put into client object
+        client.getContacts().put(contactNumber, c);
+
+//        new AsyncTask<Void, Void, Void>()
+//        {
+//
+//            @Override
+//            protected Void doInBackground(Void... voids) {
+//                // Get Contacts Public key
+//                contactPubkey = Network.getContactPublicKey(contactNumber, client);
+//                return null;
+//            }
+//
+//            @Override
+//            protected void onPostExecute(Void aVoid) {
+//                // Add Contact information and store it in the client object
+//                client.addContactInformation(i.getStringExtra("number"), contactPubkey);
+//                super.onPostExecute(aVoid);
+//            }
+//        }.execute();
 
 
         // TODO: Need to Send request to contact to initiate conversation
@@ -128,7 +148,12 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
             SmsManager sms = SmsManager.getDefault();
             String ptMsg = inputMessage.getText().toString();
             // TODO: add secret key from contacts hash map
-            String msg = Crypto.encryptAndEncodeAESMessage(ptMsg, null);
+
+            // Get session key
+            SecretKey sessionKey = client.getContacts().get(cNumber).getSessionKey();
+
+            // Send encrypted message
+            String msg = Crypto.encryptAndEncodeAESMessage(ptMsg, sessionKey, client.getPrivateKey());
             ArrayList<String> parts = sms.divideMessage(msg);
             sms.sendMultipartTextMessage(phoneNum, null, parts, null, null);
             Toast.makeText(getApplicationContext(), "SMS sent " + msg, Toast.LENGTH_LONG).show();
@@ -207,9 +232,22 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
                     SmsMessage message = SmsMessage.createFromPdu
                             ((byte[]) pdus[i]);
                     String receivedString = message.getDisplayMessageBody();
-                    // TODO: add secret key from contacts hash map
-                    String decryptedMessage = Crypto.decodeAndDecrypAESMessage(receivedString, null);
-                    stringBuilder.append(decryptedMessage);
+
+                    //TODO: use actual public key when key exchange done
+                    // Get public key from client object
+                    //PublicKey contactPublicKey = client.getContacts().get(cNumber).getPublicKey();
+
+                    // Debug key
+                    PublicKey contactPublicKey = client.getPublicKey();
+
+                    // Get session key
+                    SecretKey sessionKey = client.getContacts().get(cNumber).getSessionKey();
+
+                    // Get decrypted String message
+                    String[] decryptedMessage = Crypto.decodeAndDecrypAESMessage(receivedString, sessionKey
+                            , contactPublicKey);
+
+                    stringBuilder.append(decryptedMessage[0] + ", " + decryptedMessage[1]);
                 }
 
                 Toast toast = Toast.makeText(context,

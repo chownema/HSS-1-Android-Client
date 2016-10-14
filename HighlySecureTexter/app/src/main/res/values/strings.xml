@@ -4,4 +4,6 @@
 
     <!--Change According to the phone you are using-->
     <string name="debug_mob_number">0212556332</string>
+    <string name="signature_header">-SIGNATURE-</string>
+
 </resources>

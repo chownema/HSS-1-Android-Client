@@ -3,6 +3,8 @@ package com.aut.android.highlysecuretexter.Controller;
 import android.util.Base64;
 import android.util.Log;
 
+import com.aut.android.highlysecuretexter.R;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
@@ -34,6 +36,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class Crypto {
 
     public final static byte[] IV = {-84, 40, -10, -53, -80, 90, -57, 125, -84, 40, -10, -53, -80, 90, -57, 125};
+    public final static String SIGNATUREHEADER = "-SignatureHeader-";
 
     public static byte[] encryptInitialConnection(Client client, PublicKey pkaPublicKey) {
         try {
@@ -99,19 +102,26 @@ public class Crypto {
      * @param secretKey
      * @return Encrypted and Encoded message String
      */
-    public static String encryptAndEncodeAESMessage(String message, SecretKey secretKey)
+    public static String encryptAndEncodeAESMessage(String message, SecretKey secretKey,
+                                                    PrivateKey privatekey)
     {
         String errorMessage = null;
         try
-        {  // create a cipher
+        {
+            // Create Hash Signature from the message
+            String signature = sign(message, privatekey);
+            // Append Signature to Message
+            message += SIGNATUREHEADER+signature;
+
+            // create a cipher
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             // initialize cipher for encryption
             IvParameterSpec initVector = new IvParameterSpec(IV);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, initVector);
-            // encrypt the plaintext
+            // encrypt the plaintext bytes
             byte[] plaintext = message.getBytes();
             byte[] ciphertext = cipher.doFinal(plaintext);
-            // base 64 encode the ciphertext as a string
+            // base 64 encode the cipher text as a string
             String encodedString = Base64.encodeToString(ciphertext,
                     Base64.NO_WRAP);
             return encodedString;
@@ -128,7 +138,9 @@ public class Crypto {
                 errorMessage = "Illegal Block size: " + e;
             } catch (InvalidAlgorithmParameterException e) {
                 errorMessage = "Invalid Algorithm: " + e;
-            }
+            } catch (IOException e) {
+            e.printStackTrace();
+        }
         return message;
     }
 
@@ -142,9 +154,12 @@ public class Crypto {
      * @param secretKey
      * @return Decrypted and Decoded message String
      */
-    public static String decodeAndDecrypAESMessage(String encodedmessage, SecretKey secretKey)
+    public static String[] decodeAndDecrypAESMessage(String encodedmessage, SecretKey secretKey,
+                                                     PublicKey sendersPublicKey)
     {
         String errorMessage = null;
+        // Verification Message
+        String verificationMessage = "";
         // base 64 decode the Cipher text as a byte[]
         byte[] ciphertext = Base64.decode(encodedmessage, Base64.NO_WRAP);
         try
@@ -155,7 +170,20 @@ public class Crypto {
             cipher.init(Cipher.DECRYPT_MODE, secretKey, initVector);
             // decrypt the cipher text
             byte[] deciphertext = cipher.doFinal(ciphertext);
-            return new String(deciphertext);
+            String decipheredString  = new String(deciphertext);
+            // Get index of location of hash signature and put the signature into a String
+            int hashIndex = decipheredString.indexOf(SIGNATUREHEADER);
+            String signature = decipheredString.substring(hashIndex
+                    +SIGNATUREHEADER.length(), decipheredString.length());
+            if (verify(decipheredString, signature, sendersPublicKey))
+                verificationMessage = "verified message";
+            else
+                verificationMessage = "message has been tampered with";
+
+
+            // Store Message and verificationHeader in an array
+            String[] responseMessage = {decipheredString, verificationMessage};
+            return responseMessage;
         }
         catch (NoSuchAlgorithmException e)
         {  errorMessage = "Encryption algorithm not available: " + e;
@@ -332,7 +360,7 @@ public class Crypto {
      @param publicKey
      @return boolean of if message was tampered with or not
      */
-    public boolean verify(String message, String hash, PublicKey publicKey)
+    public static boolean verify(String message, String hash, PublicKey publicKey)
     {
         Signature signer = null;
         // Init Signer to verify with public key of sender
