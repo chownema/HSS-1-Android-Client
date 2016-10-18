@@ -103,7 +103,7 @@ public class Network {
 
     public static String[] updateContacts(Client client) {
 
-        String request = Crypto.doubleEncryptData(client.getMobile().getBytes(), client.getPrivateKey());
+        String request = Crypto.doubleEncryptData(client.getMobile().getBytes(), client.getPrivateKey(), Network.pkaPublicKey);
         String encoded = Utility.encodeToBase64(request.getBytes());
 
         // Request up to date contacts
@@ -128,20 +128,19 @@ public class Network {
 
         try {
             String clientMobile = client.getMobile();
-            String cipherString;
             // Create Cipher String with contact number and Clients Private Key
             Log.e("number passed", contactNumber);
             byte[] contactNumberBytes = contactNumber.getBytes();
             // Get Client Private Key
-            PrivateKey clientPrivateKey = client.getPrivateKey();
-            byte[] cipherBytes  = Crypto.encryptRSA(clientPrivateKey,contactNumberBytes);
-            cipherString = Utility.encodeToBase64(cipherBytes);
+            String encrypted = Crypto.doubleEncryptData(contactNumberBytes, client.getPrivateKey(), Network.pkaPublicKey);
+            String cipherString = Utility.encodeToBase64(encrypted.getBytes());
 
-            String contactPublicKey = doPost("publickey/"+clientMobile+"/"+cipherString);
-            contactPublicKey = new String(Utility.decodeFromBase64(contactPublicKey));
+            String response = doPost("publickey/"+clientMobile+"/"+cipherString);
 
-            // Generate public key object from public key String
-            contactPKey  = Crypto.generatePublicKey(contactPublicKey);
+            byte[] responseData = Crypto.doubleDecryptData(response, Network.pkaPublicKey, client.getPrivateKey());
+
+            // Generate public key object from key bytes
+            contactPKey  = Crypto.generatePublicKey(responseData);
         }
         catch (Exception e){
             Log.e("Error", e.toString());
