@@ -22,8 +22,9 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class Network {
 
-    public final static String endpoint = "http://10.0.2.2:8080/PKAServer/webresources/pka/";
+    public final static String endpoint = "http://172.28.56.205:8080/PKAServer/webresources/pka/";
     public static PublicKey pkaPublicKey = null;
+    public static HttpURLConnection conn = null;
 
     public static String doPost(String restMethod) {
 
@@ -32,7 +33,7 @@ public class Network {
         try {
 
             URL url = new URL(endpoint + restMethod);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
 
             if (conn.getResponseCode() != 200) {
@@ -51,6 +52,7 @@ public class Network {
             }
 
             conn.disconnect();
+            conn = null;
 
         } catch (MalformedURLException e) {
             Log.e("Error Posting", e.toString());
@@ -113,7 +115,7 @@ public class Network {
 
         String contactData = new String(responseData);
 
-        return contactData.split(", ");
+        return contactData.split(",");
     }
 
     /**
@@ -153,25 +155,4 @@ public class Network {
 
         return contactPKey;
     }
-
-//    public static SecretKey getContactPublicKey(String contactNumber, String clientNumber) {
-//
-//        SecretKey contactSKey = null;
-//
-//        try {
-//            String cipherString = "";
-//            String contactPublicKey = doPost("publickey/"+clientNumber+"/"+cipherString);
-//            contactSKey = Crypto.generateSecretKey(contactPublicKey);
-//        }
-//        catch (Exception e){
-//            Log.e("Error", e.toString());
-//        }
-//
-//        if (contactSKey == null) {
-//            throw new RuntimeException("Public Key Request ERROR");
-//        }
-//
-//
-//        return contactSKey;
-//    }
 }

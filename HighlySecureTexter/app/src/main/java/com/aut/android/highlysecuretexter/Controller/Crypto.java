@@ -141,7 +141,7 @@ public class Crypto {
      * @param secretKey
      * @return Decrypted and Decoded message String
      */
-    public static String decodeAndDecrypAESMessage(String encodedmessage, SecretKey secretKey)
+    public static String decodeAndDecryptAESMessage(String encodedmessage, SecretKey secretKey)
     {
         String errorMessage = null;
         // base 64 decode the Cipher text as a byte[]
@@ -189,10 +189,7 @@ public class Crypto {
     public static SecretKey generateSecretKey(byte[] keyBytes) {
         SecretKey sKey = null;
 
-        PublicKey pubKey = generatePublicKey(keyBytes);
-        // Take the first 16 bits the key and return it for AES cipher
-        byte sKeyBytes[] = Arrays.copyOf(pubKey.getEncoded(), 16);
-        sKey = new SecretKeySpec(sKeyBytes, "AES");
+        sKey = new SecretKeySpec(keyBytes, "AES");
 
         // Throw run time exception if Key is equal to null
         if (sKey == null)

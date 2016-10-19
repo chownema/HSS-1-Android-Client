@@ -1,6 +1,7 @@
 package com.aut.android.highlysecuretexter;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -11,8 +12,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.aut.android.highlysecuretexter.Controller.Client;
@@ -21,14 +24,14 @@ import com.aut.android.highlysecuretexter.Controller.Utility;
 
 import javax.crypto.SecretKey;
 
-public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
+public class LoginActivity extends Activity implements View.OnClickListener {
 
     // Screen elements
     private Button connectButton, requestButton;
     private EditText mobileTextField, passwordTextField;
 
     // Public Strings
-    private String mobile = "0212556332";
+    private String mobile;
     private Client client;
 
     @Override
@@ -52,10 +55,19 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.RECEIVE_SMS}, 1);
 
-//        // Set SMS broadcast receiver
-//        receivedBroadcastReceiver = new SMSBroadcastReceiver();
-//        registerReceiver(receivedBroadcastReceiver,
-//                new IntentFilter("android.provider.Telephony.SMS_RECEIVED"));
+        Spinner staticSpinner = (Spinner) findViewById(R.id.static_spinner);
+
+        // Create an ArrayAdapter using the string array and a default spinner
+        ArrayAdapter<CharSequence> staticAdapter = ArrayAdapter
+                .createFromResource(this, R.array.numbers,
+                        android.R.layout.simple_spinner_item);
+
+        // Specify the layout to use when the list of choices appears
+        staticAdapter
+                .setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // Apply the adapter to the spinner
+        staticSpinner.setAdapter(staticAdapter);
     }
 
     @Override
@@ -98,6 +110,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         // Get one time password debug
         Toast.makeText(this, "Getting Ephemeral key...", Toast.LENGTH_SHORT).show();
+
+        //mobile = mobileTextField.getText().toString();
+        Spinner s = (Spinner) findViewById(R.id.static_spinner);
+        mobile = s.getSelectedItem().toString();
+
         new AsyncTask<Void, Void, Void>()
         {
             @Override

@@ -21,31 +21,21 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
          <activity android:name=".ContactsActivity">
              <intent-filter>
                  <action android:name="com.example.package.EXCLASS" />
-
                  <category android:name="android.intent.category.DEFAULT" />
              </intent-filter>
          </activity>
         <activity android:name=".MessagingActivity">
             <intent-filter>
                 <action android:name="com.example.package.EXCLASS" />
-
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
-        <!--SMS receiver-->
-        <receiver android:name=".MessagingActivity$SMSBroadcastReceiver" >
-            <intent-filter>
-                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
-            </intent-filter>
-        </receiver>
 
     </application>
 

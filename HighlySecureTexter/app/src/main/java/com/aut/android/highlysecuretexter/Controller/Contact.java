@@ -1,10 +1,11 @@
 package com.aut.android.highlysecuretexter.Controller;
 
+import java.io.Serializable;
 import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
 
-public class Contact {
+public class Contact implements Serializable {
 
     private String mobile;
     // TODO: Add AES key
