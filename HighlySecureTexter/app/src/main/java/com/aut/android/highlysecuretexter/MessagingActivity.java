@@ -31,6 +31,7 @@ import com.aut.android.highlysecuretexter.Controller.Crypto;
 import com.aut.android.highlysecuretexter.Controller.Network;
 import com.aut.android.highlysecuretexter.Controller.Utility;
 
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
 
     // UI elements
     private FloatingActionButton sendMsgButton;
-    private Button sessionButton;
+    private Button sessionButton, rsaButton;
     private EditText inputMessage;
     private CheckBox encryptedCheckBox, signedCheckBox;
     static ListView messageListView;
@@ -95,6 +96,8 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
         sendMsgButton.setOnClickListener(this);
         sessionButton = (Button) findViewById(R.id.sessionButton);
         sessionButton.setOnClickListener(this);
+        rsaButton = (Button) findViewById(R.id.rsaButton);
+        rsaButton.setOnClickListener(this);
 
         inputMessage = (EditText) findViewById(R.id.message_edit_text_view);
         // Set Layout to Be pushed up when Soft Keyboard is used
@@ -120,11 +123,7 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
             SmsManager sms = SmsManager.getDefault();
 
             String encrypted = null;
-
-            if(confirmedAES)
-                encrypted = Crypto.encryptAndEncodeAESMessage(message, contact.getSessionKey());
-            else
-                encrypted = message;
+            encrypted = message;
 
             ArrayList<String> parts = sms.divideMessage(encrypted);
             sms.sendMultipartTextMessage(contactMobile, null, parts, null, null);
@@ -174,63 +173,34 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
     public void onClick(View v) {
         switch(v.getId()){
             case (R.id.floatingActionButton_send):{
-                if(gotPublicKey)
-                    sendSMSMessage(inputMessage.getText().toString(), true);
+                if(gotPublicKey && confirmedAES) {
+
+                    String input = inputMessage.getText().toString();
+                    String encrypted = Crypto.encryptAndEncodeAESMessage(input, contact.getSessionKey());
+                    sendSMSMessage(encrypted, true);
+                }
                 else
-                    Toast.makeText(MessagingActivity.this, "No session key found", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MessagingActivity.this, "No RSA or AES key found", Toast.LENGTH_SHORT).show();
                 break;
             }
             case (R.id.sessionButton): {
-                // Get private key
-                updateUI("System said: requesting public key");
-                createNewSession(false);
+                if(gotPublicKey)
+                    createNewSession();
+                else
+                    Toast.makeText(MessagingActivity.this, "No public key found", Toast.LENGTH_SHORT).show();
+                break;
+            }
+            case (R.id.rsaButton): {
+                getContactRSAKey();
                 break;
             }
         }
     }
 
-    private void createNewSession(final boolean publicKeyOnly) {
-        new AsyncTask<Void, Void, Void>()
-        {
-            @Override
-            protected Void doInBackground(Void... voids) {
+    private void createNewSession() {
 
-                try {
-                    // Get Contacts Public key
-                    PublicKey tempKey = Network.getContactPublicKey(contactMobile, client);
+        Toast.makeText(MessagingActivity.this, "Sending new Session request", Toast.LENGTH_SHORT).show();
 
-                    if(tempKey != null) {
-                        setContactPublicKey(tempKey);
-                    }
-                }
-                catch (Exception ex) {
-
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                try {
-                    if(contact.getPublicKey() != null) {
-                        updateUI("System said: received public key");
-
-                        if(!publicKeyOnly) {
-                            updateUI("System said: creating session");
-                            createSession();
-                        }
-                    }
-                    else
-                        updateUI("System said: unable to get public key");
-                }
-                catch (Exception ex) {
-                    Log.e("Busted", ex.getMessage());
-                }
-            }
-        }.execute();
-    }
-
-    private void createSession() {
         if(gotPublicKey) {
             // Produce message
             String encrypted = Crypto.doubleEncryptData("New Session".getBytes(), client.getPrivateKey(),
@@ -238,10 +208,10 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
             String encoded = Utility.encodeToBase64(encrypted.getBytes());
             // Send message
             sendSMSMessage(encoded, false);
-            updateUI("System said: session request sent");
+            Toast.makeText(MessagingActivity.this, "Session request sent", Toast.LENGTH_SHORT).show();
         }
         else
-            updateUI("System said: unable to send session request");
+            Toast.makeText(MessagingActivity.this, "Unable to send Session request", Toast.LENGTH_SHORT).show();
     }
 
     private void setSecretKey(SecretKey key) {
@@ -251,20 +221,15 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
     }
 
     private void sessionResponse() {
-        // Get contacts public key from pka
-        createNewSession(true);
-        if(gotPublicKey) {
-            updateUI("Server said: Received session request, accepting...");
-            // Get contact pub key
-            PublicKey contactPubKey = contact.getPublicKey();
-            // Produce message
-            String encrypted = Crypto.doubleEncryptData("Session Accepted".getBytes(), client.getPrivateKey(),
-                    contact.getPublicKey());
-            // Encode
-            String encoded = Utility.encodeToBase64(encrypted.getBytes());
-            // Send message
-            sendSMSMessage(encoded, false);
-        }
+
+        updateUI("Server said: Received session request, accepting...");
+        // Produce message
+        String encrypted = Crypto.doubleEncryptData("Session Accepted".getBytes(), client.getPrivateKey(),
+                contact.getPublicKey());
+        // Encode
+        String encoded = Utility.encodeToBase64(encrypted.getBytes());
+        // Send message
+        sendSMSMessage(encoded, false);
     }
 
     private void produceSessionKey() {
@@ -277,14 +242,33 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
         contact.setSessionKey(k);
         // Send it to contact
         // Get contact pub key
-        PublicKey contactPubKey = contact.getPublicKey();
         // Produce message
-        String encrypted = Crypto.doubleEncryptData(("AESKey:" + Utility.encodeToBase64(aesBytes)).getBytes(), client.getPrivateKey(),
-                contact.getPublicKey());
+        byte[] message = ("AESKey:" + Utility.encodeToBase64(aesBytes)).getBytes();
+
+        String fuck = new String(message);
+
+        String encrypted = Crypto.doubleEncryptData(message, client.getPrivateKey(), contact.getPublicKey());
         String encoded = Utility.encodeToBase64(encrypted.getBytes());
         // Send message
         sendSMSMessage(encoded, false);
-        updateUI("System said: session key sent");
+        updateUI("System said: AES key sent");
+    }
+
+    private void confirmAESReceived() {
+
+        updateUI("Server said: Sending AES received confirmation");
+        // Produce message
+        String encrypted = Crypto.doubleEncryptData("AES Received".getBytes(), client.getPrivateKey(),
+                contact.getPublicKey());
+        // Encode
+        String encoded = Utility.encodeToBase64(encrypted.getBytes());
+        // Send message
+        sendSMSMessage(encoded, false);
+    }
+
+    private void aesConfirmComplete() {
+        updateUI("Server said: AES is now shared by both contacts. Private communications can commence.");
+        confirmedAES = true;
     }
 
     private String interceptMessage(String message) {
@@ -297,15 +281,47 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
         }
         // Assume its an RSA message
         else {
-
-            if(contact.getPublicKey() == null)
-                createNewSession(true);
-
             byte[] decryptedBytes = Crypto.doubleDecryptData(message, contact.getPublicKey(), client.getPrivateKey());
             contents = new String(decryptedBytes);
         }
 
         return contents;
+    }
+
+    private void getContactRSAKey() {
+
+        Toast.makeText(MessagingActivity.this, "Requesting for Public Key...", Toast.LENGTH_SHORT).show();
+
+        new AsyncTask<Void, Void, Void>()
+        {
+            @Override
+            protected Void doInBackground(Void... voids) {
+
+                try {
+                    // Get Contacts Public key
+                    PublicKey tempKey = Network.getContactPublicKey(contactMobile, client);
+                    if(tempKey != null) {
+                        setContactPublicKey(tempKey);
+                    }
+                }
+                catch (Exception ex) {
+                    Log.e("Get RSA Error", ex.toString());
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                try {
+                    if(contact.getPublicKey() != null)
+                        updateUI("System said: received public key");
+                    else
+                        updateUI("System said: unable to get public key");
+                }
+                catch (Exception ex) {
+                }
+            }
+        }.execute();
     }
 
     /**
@@ -352,16 +368,24 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
                         activity.produceSessionKey();
                         break;
                     }
+                    case "AES Received": {
+                        activity.aesConfirmComplete();
+                        break;
+                    }
                     default: {
-
                         if(contents.startsWith("AESKey:")) {
                             // Get aes key
                             String keyCode = contents.substring(7);
                             SecretKey key = Crypto.generateSecretKey(Utility.decodeFromBase64(keyCode));
                             activity.setSecretKey(key);
+                            activity.confirmAESReceived();
                         }
-                        else
-                            updateUI("They said: " + contents);
+                        else {
+                            if(contents == null)
+                                updateUI("System said: unable to read AES message");
+                            else
+                                updateUI("They said: " + contents);
+                        }
                         break;
                     }
                 }
@@ -380,8 +404,5 @@ public class MessagingActivity extends AppCompatActivity implements View.OnClick
     private void setContactPublicKey(PublicKey publicKey) {
         contact.setPublicKey(publicKey);
         gotPublicKey = true;
-        updateUI("Server said: AES key received and stored");
     }
 }
-
-

@@ -101,6 +101,7 @@ public class Crypto {
     public static String encryptAndEncodeAESMessage(String message, SecretKey secretKey)
     {
         String errorMessage = null;
+
         try
         {  // create a cipher
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -128,6 +129,7 @@ public class Crypto {
             } catch (InvalidAlgorithmParameterException e) {
                 errorMessage = "Invalid Algorithm: " + e;
             }
+
         return message;
     }
 
@@ -144,6 +146,7 @@ public class Crypto {
     public static String decodeAndDecryptAESMessage(String encodedmessage, SecretKey secretKey)
     {
         String errorMessage = null;
+        String result = null;
         // base 64 decode the Cipher text as a byte[]
         byte[] ciphertext = Base64.decode(encodedmessage, Base64.NO_WRAP);
         try
@@ -154,7 +157,7 @@ public class Crypto {
             cipher.init(Cipher.DECRYPT_MODE, secretKey, initVector);
             // decrypt the cipher text
             byte[] deciphertext = cipher.doFinal(ciphertext);
-            return new String(deciphertext);
+            result = new String(deciphertext);
         }
         catch (NoSuchAlgorithmException e)
         {  errorMessage = "Encryption algorithm not available: " + e;
@@ -174,8 +177,14 @@ public class Crypto {
         catch (BadPaddingException e)
         {  errorMessage = "Exception with padding: " + e;
         }
-        Log.e("Error", errorMessage);
-        return null;
+        catch (Exception ex) {
+            errorMessage = ex.toString();
+        }
+
+        if(errorMessage != null)
+            Log.e("Error", errorMessage);
+
+        return result;
     }
 
     /**

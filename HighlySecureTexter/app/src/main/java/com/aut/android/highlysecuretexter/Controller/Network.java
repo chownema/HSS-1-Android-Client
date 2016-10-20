@@ -22,7 +22,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class Network {
 
-    public final static String endpoint = "http://172.28.56.205:8080/PKAServer/webresources/pka/";
+    public final static String endpoint = "http://192.168.43.238:8080/PKAServer/webresources/pka/";
     public static PublicKey pkaPublicKey = null;
     public static HttpURLConnection conn = null;
 

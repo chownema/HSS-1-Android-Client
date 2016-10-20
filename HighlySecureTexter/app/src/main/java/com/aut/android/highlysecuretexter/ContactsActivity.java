@@ -44,7 +44,7 @@ public class ContactsActivity extends Activity implements View.OnClickListener {
         contactsListView.setAdapter(adapter);
 
         // Update contacts from Server
-        updateContacts();
+        //updateContacts();
 
         // Init Buttons
         refreshButton = (Button) findViewById(R.id.refresh_contacts_button);

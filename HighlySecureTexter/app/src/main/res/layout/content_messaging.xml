@@ -67,11 +67,26 @@
             android:id="@+id/signedCheckBox"
             android:layout_weight="0.01" />
 
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
         <Button
             android:text="New Session"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/sessionButton"
+            android:layout_weight="0.01" />
+
+        <Button
+            android:text="Get RSA"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/rsaButton"
             android:layout_weight="0.01" />
     </LinearLayout>
 
